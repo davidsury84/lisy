@@ -1,0 +1,9 @@
+{
+  "name": "elkoplast-kalkulator-lisu",
+  "version": "2.0.0",
+  "description": "Kalkulátor lisů ELKOPLAST CZ - s účty a sdílenou historií",
+  "main": "server.js",
+  "scripts": {"start": "node server.js"},
+  "engines": {"node": ">=18"},
+  "private": true
+}
