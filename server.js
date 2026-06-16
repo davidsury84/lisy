@@ -9,7 +9,25 @@ const path = require('path');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, 'public');
+
+// Detekce, kde leží public/index.html — zkusíme několik typických cest.
+// Tohle pomáhá, když se obsah Railway projektu ocitne v podsložce (např. railway-app/).
+function detectPublicDir(){
+  const candidates = [
+    path.join(__dirname, 'public'),
+    path.join(__dirname, 'railway-app', 'public'),
+    path.join(process.cwd(), 'public'),
+    path.join(process.cwd(), 'railway-app', 'public'),
+  ];
+  for(const c of candidates){
+    if(fs.existsSync(path.join(c, 'index.html'))) return c;
+  }
+  return candidates[0]; // fallback i kdyby nic nenašel
+}
+const PUBLIC_DIR = detectPublicDir();
+console.log('PUBLIC_DIR =', PUBLIC_DIR);
+console.log('  index.html existuje:', fs.existsSync(path.join(PUBLIC_DIR, 'index.html')));
+
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 
@@ -231,7 +249,25 @@ const server = http.createServer(async (req, res) => {
   fs.readFile(filePath, (err, data) => {
     if (err) {
       fs.readFile(path.join(PUBLIC_DIR, 'index.html'), (e2, html) => {
-        if (e2) { res.writeHead(404); return res.end('Soubor nenalezen'); }
+        if (e2) {
+          // Diagnostická chybová stránka - pomáhá najít problém s deploymentem
+          const diag = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>404 — Soubor nenalezen</title>
+            <style>body{font-family:system-ui;max-width:700px;margin:40px auto;padding:20px;color:#333;line-height:1.6}
+            h1{color:#c00}code{background:#f4f4f4;padding:2px 6px;border-radius:3px;font-size:13px}
+            .info{background:#fff8e1;border-left:4px solid #ffc107;padding:12px 16px;margin:14px 0;border-radius:4px}</style></head>
+            <body><h1>404 — Soubor nenalezen</h1>
+            <p>Server běží, ale nepodařilo se najít <code>index.html</code>.</p>
+            <div class="info"><b>Diagnostika:</b><br>
+            PUBLIC_DIR = <code>${PUBLIC_DIR}</code><br>
+            Hledaný soubor = <code>${filePath}</code><br>
+            __dirname = <code>${__dirname}</code><br>
+            cwd = <code>${process.cwd()}</code>
+            </div>
+            <p>Zkontrolujte strukturu repozitáře — v root by měl být <code>server.js</code> a složka <code>public/</code>
+            se souborem <code>index.html</code> uvnitř.</p></body></html>`;
+          res.writeHead(404, {'Content-Type': 'text/html; charset=utf-8'});
+          return res.end(diag);
+        }
         res.writeHead(200, { 'Content-Type': MIME['.html'] }); res.end(html);
       });
       return;
