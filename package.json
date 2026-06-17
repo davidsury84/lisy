@@ -1,7 +1,7 @@
 {
   "name": "elkoplast-kalkulator-lisu",
-  "version": "3.3.0",
-  "description": "Kalkulátor lisů ELKOPLAST CZ - Zentex ceny vč. servisu",
+  "version": "3.9.0",
+  "description": "Kalkulátor lisů ELKOPLAST CZ - 3 formy dodávky včetně leasingu",
   "main": "server.js",
   "scripts": {"start": "node server.js"},
   "engines": {"node": ">=18"},

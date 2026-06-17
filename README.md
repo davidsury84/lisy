@@ -1,32 +1,30 @@
-# Kalkulátor lisů ELKOPLAST CZ — v3.3
+# Kalkulátor lisů ELKOPLAST CZ — v3.9
 
-Self-contained verze. HTML embeddované v `server.js`.
+## Co je nového v 3.9: Forma dodávky LEASING jako třetí možnost
 
-## Cenový model
+Vedle Pronájmu a Prodeje má teď hero panel třetí tlačítko **⚡ Leasing**, které
+zapne operativní leasing s opcí výkupu (Bramidan-style anuita) pro všechny
+Bramidan modely. Pro Zentex leasing není dostupný (mají vlastní cenový model).
 
-### Bramidan (vertikální lisy)
-**Fixní sazba 2,8 % z nákupní ceny stroje bez DPH.** Návratnost 36 měsíců. Servis se kalkuluje samostatně (rozložen do 12 měsíčních splátek).
+### Hero panel
+- **Forma dodávky:** Pronájem / ⚡ Leasing / Prodej lisu
+- **Parametry leasingu:** Úrok 7,9 % p.a. · Doba 60 měs (5 let) · FV 30 % zůstatková
+- Anuita PMT z TVM vzorce: PV × (1+i)^N − FV
 
-### Zentex (mobilní lisovací stroje)
-Fixní cena dle objemu **vč. kompletního servisu**:
+### PDF nabídka pro Leasing
+- Hlavička: "Forma: Operativní leasing s opcí výkupu" + doba leasingu
+- Karty lisů: cena 6 671 Kč/měs (anuita PMT + servis), zůstatková hodnota, doba
+- Souhrn cen: sloupec "Měsíční leasing vč. servisu" + "Celkem za 60 měs vč. FV"
+- DPH 21 % automaticky
+- Poznámka o třech opcích konce smlouvy (výkup / vrácení / prodloužení)
 
-| Objem | Cena vč. servisu | ~ % z nákupní |
+### Příklad - Bramidan X40 wide (nákup 336 000 Kč)
+| Forma | Měsíční částka | Celkem |
 |---|---|---|
-| 6 m³ | 9 700 Kč | 2,8 % |
-| 10 m³ | 10 000 Kč | 2,8 % |
-| 14 m³ | 10 300 Kč | 2,9 % |
-| 16 m³ | 10 600 Kč | 2,7 % |
-| **20 m³** | **10 900 Kč** | **2,7 %** |
-| 22 m³ | 11 500 Kč | 2,7 % |
-| 24 m³ | 11 800 Kč | 3,0 % |
-
-V kartě každého stroje se zobrazuje přesné % dopočítané z konkrétní nákupní ceny modelu.
+| Pronájem 2,8 % | 10 658 Kč/měs | 383 688 Kč/3 roky |
+| **Leasing anuita** | **6 671 Kč/měs** | 426 082 Kč/5 let vč. FV |
+| Prodej | 436 800 Kč (s marží 30 %) | + jednorázové |
 
 ## Nasazení
-
-1. Nahrajte 4 soubory do root GitHub repozitáře.
-2. Railway automaticky detekuje commit a nasadí.
-
-## Persistentní volume
-- Settings → Volumes → `/data`, 1 GB
-- Variables → `DATA_DIR = /data`
+1. Nahrajte soubory do GitHub repozitáře
+2. Railway redeployuje automaticky
