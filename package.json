@@ -1,7 +1,7 @@
 {
   "name": "elkoplast-kalkulator-lisu",
-  "version": "3.0.0",
-  "description": "Kalkulátor lisů ELKOPLAST CZ - self-contained verze",
+  "version": "3.3.0",
+  "description": "Kalkulátor lisů ELKOPLAST CZ - Zentex ceny vč. servisu",
   "main": "server.js",
   "scripts": {"start": "node server.js"},
   "engines": {"node": ">=18"},
