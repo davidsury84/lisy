@@ -4752,5 +4752,32 @@ render();
 setTimeout(refreshAuthUI, 50);
 
 </script>
+<script>
+/* ===== PREFILL Z POPTÁVKY (kalkulačky lisy.elkoplast.cz / mobilni-lisy.elkoplast.cz) =====
+   Aktivuje se POUZE když je v URL ?lead=1. Předvyplní produkt, formu, tonáž a klienta. */
+(function () {
+  var tries = 0;
+  function apply() {
+    if (typeof STATE === 'undefined') { if (tries++ < 40) return setTimeout(apply, 150); return; }
+    try {
+      var q = new URLSearchParams(location.search);
+      if (q.get('lead') !== '1') return;
+      var product = q.get('product');
+      if (product === 'bramidan' || product === 'zentex') STATE.product = product;
+      STATE.mode = (q.get('mode') === 'sale') ? 'sale' : 'rent';
+      var tons = parseFloat(q.get('tons'));
+      if (!isNaN(tons) && tons > 0) { STATE.selectMode = 'tons'; STATE.tonsPerMonth = tons; }
+      STATE.client = STATE.client || {};
+      if (q.get('company')) STATE.client.company = q.get('company');
+      if (q.get('name'))    STATE.client.name    = q.get('name');
+      if (q.get('contact')) STATE.client.contact = q.get('contact');
+      if (q.get('waste'))   STATE.client.waste   = q.get('waste');
+      if (typeof render === 'function') render();
+    } catch (e) { console.warn('Prefill z poptávky selhal:', e); }
+  }
+  apply();
+})();
+</script>
+
 </body>
 </html>
