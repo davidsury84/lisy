@@ -6907,6 +6907,24 @@ setTimeout(refreshAuthUI, 50);
 
 </script>
 <script>
+/* ===== SSO Z INTRANETU (mobilnirozhlas) =====
+   ?sso=<token> → výměna za session nabídkové aplikace, pak reload bez tokenu (lead parametry zůstanou). */
+(function () {
+  try {
+    var q = new URLSearchParams(location.search);
+    var sso = q.get('sso');
+    if (!sso) return;
+    q.delete('sso');
+    var clean = location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash;
+    fetch('/api/sso', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: sso }) })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) { if (d && d.token && d.user && typeof Auth !== 'undefined') Auth.setSession(d.token, d.user); })
+      .catch(function () {})
+      .then(function () { location.replace(clean); });
+  } catch (e) { /* ignore */ }
+})();
+</script>
+<script>
 /* ===== PREFILL Z POPTÁVKY (klientské kalkulačky → nabídka) =====
    Aktivuje se POUZE když je v URL ?lead=1. Předvyplní produkt, formu, tonáž a klienta. */
 (function () {

@@ -127,6 +127,25 @@ function sendJSON(res, status, body) {
 }
 function isValidEmail(e) { return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
+/* ---------- SSO z intranetu (mobilnirozhlas) ---------- */
+// Token = b64url(JSON.stringify({email,name,exp})) + "." + HMAC-SHA256("sso:"+data, secret)[0..32]
+// Stejné tajemství jako SEC.secret v mobilnirozhlas (nastavit přes env INTRANET_SSO_SECRET).
+const INTRANET_SSO_SECRET = process.env.INTRANET_SSO_SECRET || '';
+function ssoVerify(str) {
+  if (!INTRANET_SSO_SECRET || !str) return null;
+  const i = str.lastIndexOf('.');
+  if (i < 0) return null;
+  const data = str.slice(0, i), sig = str.slice(i + 1);
+  const exp = crypto.createHmac('sha256', INTRANET_SSO_SECRET).update('sso:' + data).digest('hex').slice(0, 32);
+  if (sig.length !== exp.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(exp))) return null;
+  let p;
+  try { p = JSON.parse(Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString('utf8')); }
+  catch (_) { return null; }
+  if (!p || !p.email) return null;
+  if (p.exp && Date.now() > Number(p.exp)) return null; // prošlý token
+  return p;
+}
+
 /* ---------- API HANDLERS ---------- */
 async function handleRegister(req, res) {
   try {
@@ -186,6 +205,31 @@ async function handleMe(req, res) {
   const user = getUserFromAuth(req, db);
   if (!user) return sendJSON(res, 401, { error: 'Neautorizováno' });
   sendJSON(res, 200, { user: { id: user.id, email: user.email, name: user.name } });
+}
+
+// SSO výměna: token z intranetu → session nabídkové aplikace (auto-vytvoření účtu dle e-mailu)
+async function handleSso(req, res) {
+  try {
+    if (!INTRANET_SSO_SECRET) return sendJSON(res, 503, { error: 'SSO není nakonfigurováno (chybí INTRANET_SSO_SECRET)' });
+    const body = await readBody(req);
+    const p = ssoVerify(body.token);
+    if (!p) return sendJSON(res, 401, { error: 'Neplatný nebo prošlý SSO token' });
+    const email = String(p.email).trim().toLowerCase();
+    if (!isValidEmail(email)) return sendJSON(res, 400, { error: 'SSO token nemá platný e-mail' });
+    const name = (p.name || email.split('@')[0]).toString().trim();
+    const result = await withDB(async (db) => {
+      let user = db.users.find(u => u.email === email);
+      if (!user) {
+        user = { id: 'u_' + crypto.randomBytes(8).toString('hex'), email, name, sso: true, createdAt: new Date().toISOString() };
+        db.users.push(user);
+      }
+      const token = generateToken();
+      db.sessions.push({ token, userId: user.id, expiresAt: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString() });
+      db.sessions = db.sessions.filter(s => new Date(s.expiresAt) > new Date());
+      return { token, user: { id: user.id, email: user.email, name: user.name } };
+    });
+    sendJSON(res, 200, result);
+  } catch (e) { sendJSON(res, 400, { error: e.message }); }
 }
 
 async function handleItems(req, res, urlPath) {
@@ -250,6 +294,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && urlPath === '/api/login') return await handleLogin(req, res);
       if (req.method === 'POST' && urlPath === '/api/logout') return await handleLogout(req, res);
       if (req.method === 'GET' && urlPath === '/api/me') return await handleMe(req, res);
+      if (req.method === 'POST' && urlPath === '/api/sso') return await handleSso(req, res);
       if (urlPath.startsWith('/api/items')) return await handleItems(req, res, urlPath);
       sendJSON(res, 404, { error: 'Endpoint nenalezen' });
     } catch (e) {
