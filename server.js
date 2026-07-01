@@ -131,6 +131,8 @@ function isValidEmail(e) { return typeof e === 'string' && /^[^\s@]+@[^\s@]+\.[^
 // Token = b64url(JSON.stringify({email,name,exp})) + "." + HMAC-SHA256("sso:"+data, secret)[0..32]
 // Stejné tajemství jako SEC.secret v mobilnirozhlas (nastavit přes env INTRANET_SSO_SECRET).
 const INTRANET_SSO_SECRET = process.env.INTRANET_SSO_SECRET || '';
+// Sdílené tajemství pro příjem poptávek z klientských kalkulaček (CMS → offer app, server-to-server)
+const LEADS_INGEST_SECRET = process.env.LEADS_INGEST_SECRET || '';
 function ssoVerify(str) {
   if (!INTRANET_SSO_SECRET || !str) return null;
   const i = str.lastIndexOf('.');
@@ -232,6 +234,64 @@ async function handleSso(req, res) {
   } catch (e) { sendJSON(res, 400, { error: e.message }); }
 }
 
+// Sdílená fronta poptávek („Nabídky k vyřízení") — příjem z klientských kalkulaček + zpracování obchodníkem
+async function handleLeads(req, res, urlPath) {
+  // POST /api/leads — příjem poptávky (server-to-server z CMS; volitelně chráněno X-Ingest-Secret)
+  if (req.method === 'POST' && urlPath === '/api/leads') {
+    try {
+      if (LEADS_INGEST_SECRET && req.headers['x-ingest-secret'] !== LEADS_INGEST_SECRET) return sendJSON(res, 401, { error: 'Neautorizováno' });
+      const body = await readBody(req);
+      const lead = {
+        id: 'lead_' + crypto.randomBytes(6).toString('hex'),
+        createdAt: new Date().toISOString(),
+        status: 'nova', claimedBy: null, claimedName: null,
+        page: String(body.page || 'bramidan').slice(0, 40),
+        company: String(body.company || '').slice(0, 200),
+        name: String(body.name || '').slice(0, 100),
+        phone: String(body.phone || '').slice(0, 50),
+        email: String(body.email || '').slice(0, 100),
+        message: String(body.message || '').slice(0, 2000),
+        params: (body.params && typeof body.params === 'object') ? body.params : {}
+      };
+      await withDB(async (db) => {
+        db.leads = db.leads || [];
+        db.leads.unshift(lead);
+        if (db.leads.length > 1000) db.leads.length = 1000;
+      });
+      return sendJSON(res, 201, { ok: true, id: lead.id });
+    } catch (e) { return sendJSON(res, 400, { error: e.message }); }
+  }
+  // ostatní operace vyžadují přihlášení
+  const auth = readDB();
+  const user = getUserFromAuth(req, auth);
+  if (!user) return sendJSON(res, 401, { error: 'Neautorizováno' });
+  if (req.method === 'GET' && urlPath === '/api/leads') {
+    const leads = (auth.leads || []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    return sendJSON(res, 200, { leads });
+  }
+  if (req.method === 'POST' && urlPath.startsWith('/api/leads/')) {
+    const id = urlPath.slice('/api/leads/'.length);
+    const body = await readBody(req);
+    const result = await withDB(async (db) => {
+      db.leads = db.leads || [];
+      const lead = db.leads.find(l => l.id === id);
+      if (!lead) return { status: 404, body: { error: 'Poptávka nenalezena' } };
+      if (body.status && ['nova', 'vzato', 'vyrizeno'].includes(body.status)) {
+        lead.status = body.status;
+        if (body.status === 'vzato') { lead.claimedBy = user.id; lead.claimedName = user.name; }
+      }
+      return { status: 200, body: { ok: true, lead } };
+    });
+    return sendJSON(res, result.status, result.body);
+  }
+  if (req.method === 'DELETE' && urlPath.startsWith('/api/leads/')) {
+    const id = urlPath.slice('/api/leads/'.length);
+    await withDB(async (db) => { db.leads = (db.leads || []).filter(l => l.id !== id); });
+    return sendJSON(res, 200, { ok: true });
+  }
+  return sendJSON(res, 404, { error: 'Nenalezeno' });
+}
+
 async function handleItems(req, res, urlPath) {
   const db = readDB();
   const user = getUserFromAuth(req, db);
@@ -295,6 +355,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && urlPath === '/api/logout') return await handleLogout(req, res);
       if (req.method === 'GET' && urlPath === '/api/me') return await handleMe(req, res);
       if (req.method === 'POST' && urlPath === '/api/sso') return await handleSso(req, res);
+      if (urlPath.startsWith('/api/leads')) return await handleLeads(req, res, urlPath);
       if (urlPath.startsWith('/api/items')) return await handleItems(req, res, urlPath);
       sendJSON(res, 404, { error: 'Endpoint nenalezen' });
     } catch (e) {

@@ -1984,6 +1984,7 @@ function render(){
   <div class="wrap">
     ${heroHTML()}
     ${tabsHTML()}
+    <div id="panel-inbox" class="panel"></div>
     <div id="panel-compare" class="panel"></div>
     <div id="panel-table" class="panel"></div>
     <div id="panel-params" class="panel"></div>
@@ -2219,6 +2220,7 @@ function esc(s){ return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 /* ---------- TABS ---------- */
 function tabsHTML(){
   return `<div class="tabs" id="tabs">
+    <button class="tab" data-t="inbox">📥 Nabídky k vyřízení <span class="cnt" id="cntInbox">0</span></button>
     <button class="tab" data-t="compare">${I.cube} Porovnání lisů <span class="cnt" id="cntCompare">0</span></button>
     <button class="tab" data-t="table">Srovnávací tabulka</button>
     <button class="tab" data-t="params">Parametry &amp; ceník</button>
@@ -2238,7 +2240,7 @@ function switchTab(t){
   STATE.activeTab=t;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.t===t));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-  const map={compare:renderCompare,table:renderTable,params:renderParams,offer:renderOffer,history:renderHistory,contract:renderContract,lease:renderLease,roi:renderROI,docs:renderDocs,manual:renderManual};
+  const map={inbox:function(){if(typeof renderInbox==='function')renderInbox();},compare:renderCompare,table:renderTable,params:renderParams,offer:renderOffer,history:renderHistory,contract:renderContract,lease:renderLease,roi:renderROI,docs:renderDocs,manual:renderManual};
   document.getElementById('panel-'+t).classList.add('active');
   map[t]();
   updateCounts();
@@ -2248,6 +2250,7 @@ function updateCounts(){
   const cc=document.getElementById('cntCompare'); if(cc)cc.textContent=rec;
   const co=document.getElementById('cntOffer'); if(co)co.textContent=STATE.selectedForOffer.length;
   const ch=document.getElementById('cntHistory'); if(ch)ch.textContent=History.all().length;
+  const ci=document.getElementById('cntInbox'); if(ci)ci.textContent=(typeof _inboxNewCount==='number'?_inboxNewCount:0);
 }
 
 /* ---------- HERO BINDINGS ---------- */
@@ -6905,6 +6908,79 @@ if(Auth.isLoggedIn()){
 render();
 setTimeout(refreshAuthUI, 50);
 
+</script>
+<style>
+.ib-wrap{max-width:920px}
+.ib-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.ib-item{border:1px solid var(--line,#e5e3da);border-radius:12px;padding:14px 16px;background:var(--panel,#fff)}
+.ib-head{display:flex;align-items:center;gap:10px;font-size:15px;flex-wrap:wrap}
+.ib-badge{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 9px;border-radius:999px}
+.ib-badge.new{background:#d6f0df;color:#1f8a4c}
+.ib-badge.taken{background:#fff3c4;color:#8a6d00}
+.ib-badge.done{background:#e6e6e6;color:#777}
+.ib-meta{font-size:13px;color:var(--ink2,#555);margin-top:5px}
+.ib-meta a{color:var(--gold-d,#8a6d00)}
+.ib-params{font-size:13px;color:var(--ink,#222);margin-top:6px}
+.ib-msg{font-size:13px;font-style:italic;color:var(--ink2,#555);background:var(--bg,#fafafa);padding:8px 10px;border-radius:8px;margin-top:8px}
+.ib-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:8px}
+.ib-actions{display:flex;gap:6px;flex-wrap:wrap}
+.ib-actions .btn{padding:7px 12px;font-size:12.5px}
+.ib-empty{color:var(--ink2,#777);padding:22px 4px}
+</style>
+<script>
+/* ===== NABÍDKY K VYŘÍZENÍ (inbox poptávek z klientských kalkulaček) ===== */
+var _inboxNewCount = 0;
+function _ibEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function applyLeadToState(lead){
+  var p = lead.params || {};
+  if(lead.page==='bramidan'||lead.page==='zentex') STATE.product=lead.page;
+  if(['rent','sale','lease'].indexOf(p.mode)>=0) STATE.mode=p.mode;
+  var t=parseFloat(p.tons); if(!isNaN(t)&&t>0){ STATE.selectMode='tons'; STATE.tonsPerMonth=t; }
+  STATE.client=STATE.client||{};
+  STATE.client.company=lead.company||'';
+  STATE.client.name=lead.name||'';
+  STATE.client.contact=[lead.email,lead.phone].filter(Boolean).join(' / ');
+  if(p.materialLabel) STATE.client.waste=p.materialLabel;
+  STATE.activeTab='compare';
+  render();
+}
+async function refreshInboxCount(){
+  if(!Auth.isLoggedIn()){ _inboxNewCount=0; return; }
+  try{ var d=await Auth._req('/api/leads','GET',null); _inboxNewCount=(d.leads||[]).filter(function(l){return l.status==='nova';}).length; }
+  catch(e){ _inboxNewCount=0; }
+  updateCounts();
+}
+async function renderInbox(){
+  var el=document.getElementById('panel-inbox'); if(!el) return;
+  if(!Auth.isLoggedIn()){ el.innerHTML='<div class="ib-wrap"><div class="ib-empty">Pro zobrazení poptávek se přihlaste.</div></div>'; return; }
+  el.innerHTML='<div class="ib-wrap"><div class="ib-empty">Načítám poptávky…</div></div>';
+  var leads=[];
+  try{ var d=await Auth._req('/api/leads','GET',null); leads=d.leads||[]; }
+  catch(e){ el.innerHTML='<div class="ib-wrap"><div class="ib-empty">Nelze načíst poptávky: '+_ibEsc(e.message)+'</div></div>'; return; }
+  _inboxNewCount=leads.filter(function(l){return l.status==='nova';}).length; updateCounts();
+  if(!leads.length){ el.innerHTML='<div class="ib-wrap"><div class="ib-empty">Zatím žádné poptávky k vyřízení. Přijdou sem automaticky z klientských kalkulaček.</div></div>'; return; }
+  var rows=leads.map(function(l){
+    var p=l.params||{};
+    var badge=l.status==='vyrizeno'?'<span class="ib-badge done">Vyřízeno</span>':l.status==='vzato'?'<span class="ib-badge taken">Vzato'+(l.claimedName?' · '+_ibEsc(l.claimedName):'')+'</span>':'<span class="ib-badge new">Nová</span>';
+    return '<div class="ib-item" data-id="'+_ibEsc(l.id)+'">'
+      +'<div class="ib-head"><b>'+_ibEsc(l.company)+'</b> '+badge+'</div>'
+      +'<div class="ib-meta">'+_ibEsc(l.name)+' · <a href="mailto:'+_ibEsc(l.email)+'">'+_ibEsc(l.email)+'</a>'+(l.phone?' · '+_ibEsc(l.phone):'')+'</div>'
+      +'<div class="ib-params">'+_ibEsc(p.recommendedModel||'—')+' · '+_ibEsc(String(p.tons||'—'))+' t/měs · '+_ibEsc(p.materialLabel||'—')+' · '+_ibEsc(p.modeLabel||'—')+'</div>'
+      +(l.message?'<div class="ib-msg">„'+_ibEsc(l.message)+'"</div>':'')
+      +'<div class="ib-foot"><span class="ib-meta">'+new Date(l.createdAt).toLocaleString('cs-CZ')+'</span>'
+      +'<span class="ib-actions"><button class="btn gold" data-act="zpracovat">Zpracovat →</button><button class="btn" data-act="vyrizeno">Vyřízeno</button><button class="btn" data-act="smazat">Smazat</button></span></div>'
+      +'</div>';
+  }).join('');
+  el.innerHTML='<div class="ib-wrap"><div style="font-size:13px;color:var(--ink2,#555)">Poptávky z klientských kalkulaček. Klikni <b>Zpracovat</b> → kalkulátor se předvyplní a poptávka se označí jako „vzato".</div><div class="ib-list">'+rows+'</div></div>';
+  el.querySelectorAll('.ib-item').forEach(function(item){
+    var id=item.getAttribute('data-id'); var lead=leads.filter(function(l){return l.id===id;})[0];
+    item.querySelector('[data-act="zpracovat"]').onclick=async function(){ try{ await Auth._req('/api/leads/'+id,'POST',{status:'vzato'}); }catch(e){} applyLeadToState(lead); };
+    item.querySelector('[data-act="vyrizeno"]').onclick=async function(){ try{ await Auth._req('/api/leads/'+id,'POST',{status:'vyrizeno'}); }catch(e){} renderInbox(); };
+    item.querySelector('[data-act="smazat"]').onclick=async function(){ if(!confirm('Smazat poptávku?'))return; try{ await Auth._req('/api/leads/'+id,'DELETE',null); }catch(e){} renderInbox(); };
+  });
+}
+setTimeout(function(){ try{ refreshInboxCount(); }catch(e){} }, 300);
+setInterval(function(){ try{ if(Auth.isLoggedIn()) refreshInboxCount(); }catch(e){} }, 60000);
 </script>
 <script>
 /* ===== SSO Z INTRANETU (mobilnirozhlas) =====
