@@ -268,6 +268,13 @@ async function handleLeads(req, res, urlPath) {
     const nova = (dbc.leads || []).filter(function (l) { return l.status === 'nova'; }).length;
     return sendJSON(res, 200, { nova: nova });
   }
+  // GET /api/leads/all — plný výpis poptávek (server-to-server pro intranet; chráněno X-Ingest-Secret)
+  if (req.method === 'GET' && urlPath === '/api/leads/all') {
+    if (LEADS_INGEST_SECRET && req.headers['x-ingest-secret'] !== LEADS_INGEST_SECRET) return sendJSON(res, 401, { error: 'Neautorizováno' });
+    const dbl = readDB();
+    const leads = (dbl.leads || []).slice().sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+    return sendJSON(res, 200, { leads: leads });
+  }
   // ostatní operace vyžadují přihlášení
   const auth = readDB();
   const user = getUserFromAuth(req, auth);
