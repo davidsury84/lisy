@@ -1984,6 +1984,7 @@ function render(){
   <div class="wrap">
     ${heroHTML()}
     ${tabsHTML()}
+    <div id="inboxAlert" class="inbox-alert" style="display:none" role="button" tabindex="0" aria-live="polite"></div>
     <div id="panel-inbox" class="panel"></div>
     <div id="panel-compare" class="panel"></div>
     <div id="panel-table" class="panel"></div>
@@ -2250,7 +2251,9 @@ function updateCounts(){
   const cc=document.getElementById('cntCompare'); if(cc)cc.textContent=rec;
   const co=document.getElementById('cntOffer'); if(co)co.textContent=STATE.selectedForOffer.length;
   const ch=document.getElementById('cntHistory'); if(ch)ch.textContent=History.all().length;
-  const ci=document.getElementById('cntInbox'); if(ci)ci.textContent=(typeof _inboxNewCount==='number'?_inboxNewCount:0);
+  const nNew=(typeof _inboxNewCount==='number'?_inboxNewCount:0);
+  const ci=document.getElementById('cntInbox'); if(ci){ ci.textContent=nNew; ci.classList.toggle('cnt-alert', nNew>0); }
+  if(typeof renderInboxAlert==='function') renderInboxAlert();
 }
 
 /* ---------- HERO BINDINGS ---------- */
@@ -6931,6 +6934,15 @@ setTimeout(refreshAuthUI, 50);
 .ib-actions{display:flex;gap:6px;flex-wrap:wrap}
 .ib-actions .btn{padding:7px 12px;font-size:12.5px}
 .ib-empty{color:var(--ink2,#777);padding:22px 4px}
+.ib-item.is-new{border-color:#ffce1f;background:#fffdf5;box-shadow:inset 3px 0 0 #ffce1f}
+/* výrazné upozornění „nová poptávka — akce" nad panely (viditelné na všech záložkách) */
+.inbox-alert{display:flex;align-items:center;gap:10px;margin-top:12px;padding:12px 16px;border-radius:10px;background:#fff3c4;border:1px solid #ffce1f;color:#6b5200;font-size:14px;font-weight:700;cursor:pointer;user-select:none}
+.inbox-alert:hover{background:#ffe9a3}
+.inbox-alert .ia-dot{width:9px;height:9px;border-radius:50%;background:#e5484d;flex:none;animation:iaPulse 1.5s infinite}
+.inbox-alert .ia-cta{margin-left:auto;color:#8a6d00;font-weight:800;white-space:nowrap}
+@keyframes iaPulse{0%{box-shadow:0 0 0 0 rgba(229,72,77,.5)}70%{box-shadow:0 0 0 8px rgba(229,72,77,0)}100%{box-shadow:0 0 0 0 rgba(229,72,77,0)}}
+.tab .cnt.cnt-alert,.tab.active .cnt.cnt-alert{background:#e5484d;color:#fff;animation:cntBlink 1.6s ease-in-out infinite}
+@keyframes cntBlink{0%,100%{opacity:1}50%{opacity:.5}}
 </style>
 <script>
 /* ===== NABÍDKY K VYŘÍZENÍ (inbox poptávek z klientských kalkulaček) ===== */
@@ -6950,10 +6962,24 @@ function applyLeadToState(lead){
   render();
 }
 async function refreshInboxCount(){
-  if(!Auth.isLoggedIn()){ _inboxNewCount=0; return; }
+  if(!Auth.isLoggedIn()){ _inboxNewCount=0; updateCounts(); return; }
   try{ var d=await Auth._req('/api/leads','GET',null); _inboxNewCount=(d.leads||[]).filter(function(l){return l.status==='nova';}).length; }
   catch(e){ _inboxNewCount=0; }
   updateCounts();
+}
+function _leadWord(n){ return n===1?'nová poptávka čeká na zpracování':((n>=2&&n<=4)?'nové poptávky čekají na zpracování':'nových poptávek čeká na zpracování'); }
+// Výrazné upozornění nad panely + počet v titulku prohlížeče (viditelné i v neaktivní záložce).
+function renderInboxAlert(){
+  var n=(typeof _inboxNewCount==='number'?_inboxNewCount:0);
+  var bar=document.getElementById('inboxAlert');
+  if(bar){
+    if(n>0){
+      bar.innerHTML='<span class="ia-dot"></span><span class="ia-txt"><b>'+n+'</b> '+_leadWord(n)+'</span><span class="ia-cta">Zobrazit →</span>';
+      bar.style.display='';
+      bar.onclick=function(){ if(typeof switchTab==='function') switchTab('inbox'); };
+    } else { bar.style.display='none'; }
+  }
+  try{ var base=(document.title||'').replace(/^\(\d+\)\s*/,''); document.title=n>0?('('+n+') '+base):base; }catch(_){}
 }
 async function renderInbox(){
   var el=document.getElementById('panel-inbox'); if(!el) return;
@@ -6967,7 +6993,7 @@ async function renderInbox(){
   var rows=leads.map(function(l){
     var p=l.params||{};
     var badge=l.status==='vyrizeno'?'<span class="ib-badge done">Vyřízeno</span>':l.status==='vzato'?'<span class="ib-badge taken">Vzato'+(l.claimedName?' · '+_ibEsc(l.claimedName):'')+'</span>':'<span class="ib-badge new">Nová</span>';
-    return '<div class="ib-item" data-id="'+_ibEsc(l.id)+'">'
+    return '<div class="ib-item'+(l.status==='nova'?' is-new':'')+'" data-id="'+_ibEsc(l.id)+'">'
       +'<div class="ib-head"><b>'+_ibEsc(l.company)+'</b> '+badge+'</div>'
       +'<div class="ib-meta">'+_ibEsc(l.name)+' · <a href="mailto:'+_ibEsc(l.email)+'">'+_ibEsc(l.email)+'</a>'+(l.phone?' · '+_ibEsc(l.phone):'')+'</div>'
       +'<div class="ib-params">'+_ibEsc(p.recommendedModel||'—')+' · '+_ibEsc(String(p.tons||'—'))+' t/měs · '+_ibEsc(p.materialLabel||'—')+' · '+_ibEsc(p.modeLabel||'—')+'</div>'
@@ -6985,7 +7011,7 @@ async function renderInbox(){
   });
 }
 setTimeout(function(){ try{ refreshInboxCount(); }catch(e){} }, 300);
-setInterval(function(){ try{ if(Auth.isLoggedIn()) refreshInboxCount(); }catch(e){} }, 60000);
+setInterval(function(){ try{ if(Auth.isLoggedIn()) refreshInboxCount(); }catch(e){} }, 30000);
 </script>
 <script>
 /* ===== SSO Z INTRANETU (mobilnirozhlas) =====
@@ -7041,6 +7067,18 @@ setInterval(function(){ try{ if(Auth.isLoggedIn()) refreshInboxCount(); }catch(e
     } catch (e) { console.warn('Prefill z poptávky selhal:', e); }
   }
   apply();
+})();
+</script>
+<script>
+/* ===== AUTO-OTEVŘENÍ ZÁLOŽKY z URL (?tab=inbox) — pro vložení „Poptávky" z intranetu ===== */
+(function(){
+  var q=new URLSearchParams(location.search); var t=q.get('tab');
+  if(!t) return;
+  var tries=0;
+  (function go(){
+    if(typeof switchTab!=='function' || !document.querySelector('.tab[data-t="'+t+'"]')){ if(tries++<40) return setTimeout(go,150); return; }
+    try{ switchTab(t); }catch(e){}
+  })();
 })();
 </script>
 </body>
