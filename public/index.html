@@ -6926,6 +6926,9 @@ setTimeout(refreshAuthUI, 50);
 .ib-badge.new{background:#d6f0df;color:#1f8a4c}
 .ib-badge.taken{background:#fff3c4;color:#8a6d00}
 .ib-badge.done{background:#e6e6e6;color:#777}
+.ib-prod{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 9px;border-radius:999px;border:1px solid transparent}
+.ib-prod.zentex{background:#e4ecff;color:#2b52b8;border-color:#c3d3f5}
+.ib-prod.bramidan{background:#f3ecff;color:#6a3fb8;border-color:#ddccf5}
 .ib-meta{font-size:13px;color:var(--ink2,#555);margin-top:5px}
 .ib-meta a{color:var(--gold-d,#8a6d00)}
 .ib-params{font-size:13px;color:var(--ink,#222);margin-top:6px}
@@ -6993,8 +6996,9 @@ async function renderInbox(){
   var rows=leads.map(function(l){
     var p=l.params||{};
     var badge=l.status==='vyrizeno'?'<span class="ib-badge done">Vyřízeno</span>':l.status==='vzato'?'<span class="ib-badge taken">Vzato'+(l.claimedName?' · '+_ibEsc(l.claimedName):'')+'</span>':'<span class="ib-badge new">Nová</span>';
+    var prodBadge=l.page==='zentex'?'<span class="ib-prod zentex">Mobilní lisy</span>':(l.page==='bramidan'?'<span class="ib-prod bramidan">Bramidan</span>':'');
     return '<div class="ib-item'+(l.status==='nova'?' is-new':'')+'" data-id="'+_ibEsc(l.id)+'">'
-      +'<div class="ib-head"><b>'+_ibEsc(l.company)+'</b> '+badge+'</div>'
+      +'<div class="ib-head"><b>'+_ibEsc(l.company)+'</b> '+prodBadge+' '+badge+'</div>'
       +'<div class="ib-meta">'+_ibEsc(l.name)+' · <a href="mailto:'+_ibEsc(l.email)+'">'+_ibEsc(l.email)+'</a>'+(l.phone?' · '+_ibEsc(l.phone):'')+'</div>'
       +'<div class="ib-params">'+_ibEsc(p.recommendedModel||'—')+' · '+_ibEsc(String(p.tons||'—'))+' t/měs · '+_ibEsc(p.materialLabel||'—')+' · '+_ibEsc(p.modeLabel||'—')+'</div>'
       +(l.message?'<div class="ib-msg">„'+_ibEsc(l.message)+'"</div>':'')
