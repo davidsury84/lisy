@@ -6953,7 +6953,7 @@ var _inboxNewCount = 0;
 function _ibEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function applyLeadToState(lead){
   var p = lead.params || {};
-  if(lead.page==='bramidan'||lead.page==='zentex') STATE.product=lead.page;
+  STATE.product = (lead.page==='bramidan') ? 'bramidan' : 'zentex';
   if(['rent','sale','lease'].indexOf(p.mode)>=0) STATE.mode=p.mode;
   var t=parseFloat(p.tons); if(!isNaN(t)&&t>0){ STATE.selectMode='tons'; STATE.tonsPerMonth=t; }
   STATE.client=STATE.client||{};
@@ -6996,7 +6996,7 @@ async function renderInbox(){
   var rows=leads.map(function(l){
     var p=l.params||{};
     var badge=l.status==='vyrizeno'?'<span class="ib-badge done">Vyřízeno</span>':l.status==='vzato'?'<span class="ib-badge taken">Vzato'+(l.claimedName?' · '+_ibEsc(l.claimedName):'')+'</span>':'<span class="ib-badge new">Nová</span>';
-    var prodBadge=l.page==='zentex'?'<span class="ib-prod zentex">Mobilní lisy</span>':(l.page==='bramidan'?'<span class="ib-prod bramidan">Bramidan</span>':'');
+    var prodBadge=l.page==='bramidan'?'<span class="ib-prod bramidan">Bramidan</span>':'<span class="ib-prod zentex">Mobilní lisy</span>';
     return '<div class="ib-item'+(l.status==='nova'?' is-new':'')+'" data-id="'+_ibEsc(l.id)+'">'
       +'<div class="ib-head"><b>'+_ibEsc(l.company)+'</b> '+prodBadge+' '+badge+'</div>'
       +'<div class="ib-meta">'+_ibEsc(l.name)+' · <a href="mailto:'+_ibEsc(l.email)+'">'+_ibEsc(l.email)+'</a>'+(l.phone?' · '+_ibEsc(l.phone):'')+'</div>'
