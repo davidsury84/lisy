@@ -6538,17 +6538,23 @@ function offerSummaryText(){
         const per=c.indef?c.celkemRokVcServ:c.celkemObdobi;
         sM+=c.celkemMesicVcServ; sP+=per;
         L.push('  • '+nm+' ('+spec+') — pronájem '+num(c.celkemMesicVcServ)+' Kč/měs bez DPH ('+num(c.celkemMesicVcServDph)+' s DPH)');
-        L.push('      nájem '+num(c.najemMesic)+' + servis '+num(c.servisMesic)+' Kč/měs · jednorázově '+num(c.oneTimeTotal)+' Kč (bez DPH)');
+        L.push('      nájem '+num(c.najemMesic)+' + servis '+num(c.servisMesic)+' Kč/měs · jednorázově (doprava, instalace, školení) '+num(c.oneTimeTotal)+' Kč bez DPH');
       }
+      const tech = pz
+        ? 'objem '+p.vol+' m³ · lisovací síla '+p.force+' kN · nosič '+p.carrier+' · motor '+(p.motor||(p.kw+' kW'))+' · olej '+p.oil+' L'+(p.power?' · el. přípojka '+p.power:'')+(p.hopper?' · násypka '+p.hopper:'')
+        : 'lisovací síla '+p.force+' t · motor '+(p.kw||'—')+' kW · el. přípojka '+p.power+(p.noise?' · hlučnost '+p.noise+' dB':'')+(p.dims?' · rozměry '+p.dims+' mm':'')+(p.feed?' · plnicí otvor '+p.feed+' mm':'')+(p.bale?' · balík '+p.bale+' mm':'');
+      L.push('      Technické údaje: '+tech);
     });
-    L.push('');
     const dphPct = pct(GP.dph);
-    if(sale){
-      L.push('  CELKEM bez DPH: prodej '+num(sProd)+' Kč · servis '+num(sServ)+' Kč/rok · jednorázově '+num(sO)+' Kč');
-      L.push('  CELKEM s DPH ('+dphPct+'): prodej '+num(Math.round(sProd*(1+GP.dph)))+' Kč · servis '+num(Math.round(sServ*(1+GP.dph)))+' Kč/rok · jednorázově '+num(Math.round(sO*(1+GP.dph)))+' Kč');
-    } else {
-      L.push('  CELKEM bez DPH: '+num(sM)+' Kč/měs · '+num(sP)+(isIndefinite()?' Kč ročně':' Kč za '+termLabel())+' · jednorázově '+num(sO)+' Kč');
-      L.push('  CELKEM s DPH ('+dphPct+'): '+num(Math.round(sM*(1+GP.dph)))+' Kč/měs · '+num(Math.round(sP*(1+GP.dph)))+(isIndefinite()?' Kč ročně':' Kč za '+termLabel())+' · jednorázově '+num(Math.round(sO*(1+GP.dph)))+' Kč');
+    if(sel.length>1){   // souhrn jen u víc modelů; u jednoho by jen opakoval řádek výše
+      L.push('');
+      if(sale){
+        L.push('  CELKEM bez DPH: prodej '+num(sProd)+' Kč · servis '+num(sServ)+' Kč/rok · jednorázově '+num(sO)+' Kč');
+        L.push('  CELKEM s DPH ('+dphPct+'): prodej '+num(Math.round(sProd*(1+GP.dph)))+' Kč · servis '+num(Math.round(sServ*(1+GP.dph)))+' Kč/rok · jednorázově '+num(Math.round(sO*(1+GP.dph)))+' Kč');
+      } else {
+        L.push('  CELKEM bez DPH: '+num(sM)+' Kč/měs · jednorázově '+num(sO)+' Kč');
+        L.push('  CELKEM s DPH ('+dphPct+'): '+num(Math.round(sM*(1+GP.dph)))+' Kč/měs · jednorázově '+num(Math.round(sO*(1+GP.dph)))+' Kč');
+      }
     }
   } else {
     const recs=selectedPresses();
