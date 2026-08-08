@@ -1090,6 +1090,8 @@ function zentexPhoto(p){
   if(hop.includes('MR')) return (serie==='l'||serie==='xl'||serie==='n') ? serie+'mr' : 'nmr';
   return serie+'sha';
 }
+/* Reálná produktová fotka Bramidan modelu (self-hosted z /img/bramidan, zdroj bramidan.com) */
+function bramidanPhoto(p){ return (p.id||'').toLowerCase().replace(/\s+/g,''); }
 
 /* ---------- POMOCNÉ ---------- */
 const czk = n => Math.round(n).toLocaleString('cs-CZ')+" Kč";
@@ -2531,7 +2533,7 @@ function pressCard(p,c,best){
   const door=(!zx && p.door)?`<span class="door-tag">${p.door} dveře</span>`:'';
   const img = zx
     ? '<img class="press-photo" src="/img/zentex/'+zentexPhoto(p)+'.jpg" alt="Zentex '+p.id+'" loading="lazy">'
-    : pressSVG(p);
+    : '<img class="press-photo" src="/img/bramidan/'+bramidanPhoto(p)+'.webp" alt="Bramidan '+p.id+'" loading="lazy">';
   const ztype = zx ? zentexTypeInfo(p) : null;
   const zwaste = zx ? zentexWaste(p) : null;
   const links = zx
