@@ -2471,7 +2471,7 @@ function pressCard(p,c,best){
         <div class="pp-main"><span class="big">${num(c.prodejni)}</span><span class="per">Kč</span></div>
         <div class="pp-dph-row">s DPH ${pct(c.dph)}: <b>${num(c.prodejniDph)} Kč</b></div>
         ${c.servisRok>0?`<div class="pp-sub">+ ${servLabel()} servis 1× ročně: <span class="mono">${num(c.servisRok)} Kč</span> <span class="dph-mini">(${num(c.servisRokDph)} s DPH)</span></div>`:`<div class="pp-sub">Bez servisu</div>`}
-        <div class="pp-sub">Jednorázově (doprava, instalace…): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>
+        <div class="pp-sub">Jednorázově (doprava, instalace, školení): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>
         <div class="pp-sub" style="color:var(--muted)">Marže ${pct(GP.marze)} · jednorázové položky zvlášť · všechny ceny <b>bez DPH</b> není-li uvedeno jinak</div>`
     : lease ? `
         <div class="pp-lbl">Měsíční anuita vč. ${servLabel()} servisu <span class="pp-dph-tag">bez DPH</span></div>
@@ -2483,7 +2483,7 @@ function pressCard(p,c,best){
         <div class="pp-sub">Doba leasingu: <b>${c.leaseN} měs</b> (${(c.leaseN/12).toFixed(1)} let) · úrok <b>${pct(c.leaseI)} p.a.</b></div>
         <div class="pp-sub">Zůstatková hodnota (FV) <b>${pct(c.leaseFvPct)}</b>: <span class="mono">${num(c.leaseFV)} Kč</span> <span class="dph-mini">(${num(c.leaseFVDph)} s DPH)</span></div>
         <div class="pp-sub">Celkem za leasing vč. výkupu FV: <span class="mono">${num(c.leaseCelkemObdobi)} Kč</span> bez DPH</div>
-        <div class="pp-sub">Jednorázově (doprava, instalace…): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>
+        <div class="pp-sub">Jednorázově (doprava, instalace, školení): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>
         <div class="pp-sub" style="color:var(--gold);font-weight:600;margin-top:6px">${I.bolt} Operativní leasing s opcí výkupu — detaily v záložce <b>Leasing (anuita)</b></div>`
     : `
         <div class="pp-lbl">Pronájem vč. ${servLabel()} servisu <span class="pp-dph-tag">bez DPH</span></div>
@@ -2494,10 +2494,8 @@ function pressCard(p,c,best){
         <div class="pp-dph-row">s DPH ${pct(c.dph)}: <b>${num(c.celkemMesicVcServDph)} Kč / měs</b></div>
         <div class="pp-sub">Nájem stroje (${c.isZentex?'<b>fixní cena dle objemu</b> · efektivní sazba '+pct(c.najemProcEfektivni)+' z nákupní':pct(GP.najemProc)+' z nákupní'}): <span class="mono">${num(c.najemMesic)} Kč</span> + servis: <span class="mono">${num(c.servisMesic)} Kč</span></div>
         ${c.sleva>0?`<div class="pp-save">${I.check} Sleva ${pct(c.sleva)} za závazek ${STATE.years} ${rokyWord(STATE.years)}</div>`:''}
-        ${c.indef
-          ? `<div class="pp-sub">Doba neurčitá · ročně: <span class="mono">${num(c.celkemRokVcServ)} Kč</span> bez DPH (<span class="mono">${num(c.celkemRokVcServDph)} s DPH</span>)</div>`
-          : `<div class="pp-sub">Za celé období (${termLabel()}): <span class="mono">${num(c.celkemObdobi)} Kč</span> bez DPH (<span class="mono">${num(c.celkemObdobiDph)} s DPH</span>)</div>`}
-        <div class="pp-sub">Jednorázově (doprava, instalace…): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>`;
+        <div class="pp-sub">Ročně vč. servisu: <span class="mono">${num(c.celkemRokVcServ)} Kč</span> bez DPH (<span class="mono">${num(c.celkemRokVcServDph)} s DPH</span>)</div>
+        <div class="pp-sub">Jednorázově (doprava, instalace, školení): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>`;
 
   const tag = zx ? `${p.force} kN · ${p.motor} · ${p.power}` : `${p.force} t · ${p.kw||'—'} kW · ${p.power} · ${p.noise} dB`;
   const specMini = zx ? `
@@ -2640,7 +2638,7 @@ function renderTable(){
     ['sec','Prodejní kalkulace'],
     ['Prodejní cena lisu',o=>'<b>'+num(o.c.prodejni)+' Kč</b>'],
     [servLabel()+' servis / rok',o=>num(o.c.servisRok)+' Kč'],
-    ['Jednorázově (doprava, instalace…)',o=>num(o.c.oneTimeTotal)+' Kč'],
+    ['Jednorázově (doprava, instalace, školení)',o=>num(o.c.oneTimeTotal)+' Kč'],
     ['Marže obchodníka',o=>pct(GP.marze)],
   ] : [
     ['sec','Cenová kalkulace — pronájem'],
@@ -2648,9 +2646,8 @@ function renderTable(){
     ['Servis / měs',o=>num(o.c.servisMesic)+' Kč'],
     ['Celkem / měsíc vč. servisu',o=>'<b>'+num(o.c.celkemMesicVcServ)+' Kč</b>'],
     ['Celkem / rok vč. servisu',o=>num(o.c.celkemRokVcServ)+' Kč'],
-    ['Celkem za období',o=>o.c.indef?'—':num(o.c.celkemObdobi)+' Kč'],
     ['Sleva za závazek',o=>o.c.sleva>0?'<span class="hl">−'+pct(o.c.sleva)+'</span>':'—'],
-    ['Jednorázově (doprava, instalace…)',o=>num(o.c.oneTimeTotal)+' Kč'],
+    ['Jednorázově (doprava, instalace, školení)',o=>num(o.c.oneTimeTotal)+' Kč'],
   ];
   const rows=[...techRows,...priceRows];
   const body=rows.map(r=>{
