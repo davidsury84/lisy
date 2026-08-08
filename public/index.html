@@ -1036,10 +1036,20 @@ function zentexTypeInfo(p){
   let ucel = U[serie]||'';
   if(hop.includes('MR')) ucel+=' Střecha MR/HMR pro objemný lehký materiál.';
   if((/TD/.test(hop)||/TD/.test(id)) && serie!=='XL') ucel+=' Translační (posuvné) dveře.';
-  let zurl='https://www.zentex.pl/en/#';
-  if(serie==='SW'||hop==='SW') zurl='https://www.zentex.pl/en/products/mobile-compactor-type-sw/type-sw-sha.html';
-  else if(hop.includes('MR')&&serie==='XL') zurl='https://www.zentex.pl/en/products/mobile-compactor-type-mr/type-xl-mr.html';
-  else if(hop.includes('MR')) zurl='https://www.zentex.pl/en/products/mobile-compactor-type-mr/type-n-mr.html';
+  // konkrétní typové stránky zentex.pl (přesné odkazy z ceníku 2026)
+  const B='https://www.zentex.pl/en/products/';
+  let zurl;
+  if(/^SWZ/.test(id))       zurl=B+'mobile-compactor-type-sw/type-swz-sha.html';   // silnostěnná, řetězový
+  else if(/^SWR/.test(id))  zurl=B+'mobile-compactor-type-sw/type-swr-sha.html';   // silnostěnná, hákový
+  else if(/^SW\b/.test(id)) zurl=B+'mobile-compactor-type-sw/type-sw-sha.html';    // silnostěnná 16–24
+  else if(/^L-?W/.test(id)) zurl=B+'mobile-compactor-type-sha/type-lw-sha.html';   // lehké dřevo
+  else {
+    const fam=serie.toLowerCase();  // z, r, n, l, xl
+    if(hop.includes('MR') && (serie==='N'||serie==='L'||serie==='XL'))
+      zurl=B+'mobile-compactor-type-mr/type-'+fam+'-mr.html';
+    else
+      zurl=B+'mobile-compactor-type-sha/type-'+fam+'-sha.html';
+  }
   return {label, ucel, zurl};
 }
 
