@@ -324,8 +324,8 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .press.best{border:1.5px solid var(--gold-d);box-shadow:0 0 0 1px var(--gold-d),var(--sh-gold),var(--sh)}
 .press .crown{position:absolute;top:0;left:0;right:0;background:linear-gradient(90deg,var(--gold),var(--gold-d));color:#1a1500;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:5px;z-index:4}
 .press.best .press-img{margin-top:26px}
-.press-img{height:200px;background:radial-gradient(circle at 50% 35%,#f7f9f4,#e9ede6);display:grid;place-items:center;border-bottom:1px solid var(--line);position:relative;padding:18px}
-.press-photo{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 8px 18px rgba(15,21,18,.14))}
+.press-img{height:210px;background:radial-gradient(circle at 50% 35%,#f7f9f4,#e9ede6);display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid var(--line);position:relative;padding:16px}
+.press-photo{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;filter:drop-shadow(0 8px 18px rgba(15,21,18,.14))}
 .press-img svg{height:100%;width:auto;max-width:100%;filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))}
 .serie-tag{position:absolute;top:13px;left:13px;font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 10px;border-radius:7px;z-index:3}
 .serie-tag.X{background:var(--steel);color:#fff}
@@ -1610,7 +1610,19 @@ function calc(p, serviceMode){
   };
 }
 function najemZakladLabel(){ return 'nákupní'; }
-function recommended(t){ return activeProducts().filter(p=>t>=p.minT && t<=p.maxT); }
+function recommended(t){
+  const all = activeProducts();
+  const inRange = all.filter(p=>t>=p.minT && t<=p.maxT);
+  const MIN_SHOW = 8;
+  if(inRange.length >= MIN_SHOW) return inRange;
+  // Doplň nejbližšími modely (dle vzdálenosti tonáže od zvoleného t), ať obchodník vidí víc variant
+  const inSet = new Set(inRange.map(p=>p.id));
+  const rest = all.filter(p=>!inSet.has(p.id))
+    .map(p=>({ p, d: Math.min(Math.abs(t-p.minT), Math.abs(t-p.maxT), (t>=p.minT&&t<=p.maxT)?0:Math.abs(t-(p.minT+p.maxT)/2)) }))
+    .sort((a,b)=>a.d-b.d)
+    .map(x=>x.p);
+  return inRange.concat(rest).slice(0, Math.max(MIN_SHOW, inRange.length));
+}
 
 /* ===== DOPORUČOVÁNÍ ZENTEX — fyzikální + bodový rating =====
 
@@ -1750,8 +1762,8 @@ function selectedPresses(){
   if(isZentex()){
     if(STATE.selectMode==='vol')     return STATE.volChoice ? COMPACTORS.filter(p=>String(p.vol)===String(STATE.volChoice)) : [];
     if(STATE.selectMode==='carrier') return STATE.carrierChoice ? COMPACTORS.filter(p=>p.carrier===STATE.carrierChoice) : [];
-    // Default: top 5 podle skóre (rating)
-    return recommendedZentexScored(5).map(s => s.p);
+    // Default: top 8 podle skóre (rating)
+    return recommendedZentexScored(8).map(s => s.p);
   }
   if(STATE.selectMode==='bale')  return STATE.baleChoice ? PRESSES.filter(p=>p.bale===STATE.baleChoice) : [];
   if(STATE.selectMode==='feed')  return STATE.feedChoice ? PRESSES.filter(p=>p.feed===STATE.feedChoice) : [];
@@ -2531,9 +2543,10 @@ function pressCard(p,c,best){
         <div class="sm">Motor / olej<b style="font-size:11.5px">${p.kw||'—'} kW · ${p.oil||'—'} L</b></div>`;
   const serieTag = zx ? `<span class="serie-tag X">${p.hopper}</span>` : `<span class="serie-tag ${p.serie}">${p.serie}-série</span>`;
   const door=(!zx && p.door)?`<span class="door-tag">${p.door} dveře</span>`:'';
+  const imgFallback = "this.onerror=null;this.classList.add('press-photo-missing');this.closest('.press-img').classList.add('no-photo');this.src='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'160\\' height=\\'120\\' viewBox=\\'0 0 160 120\\'><rect x=\\'34\\' y=\\'16\\' width=\\'92\\' height=\\'88\\' rx=\\'6\\' fill=\\'%23ffd21a\\'/><rect x=\\'46\\' y=\\'30\\' width=\\'68\\' height=\\'20\\' rx=\\'3\\' fill=\\'%230e8a43\\' opacity=\\'.85\\'/><rect x=\\'46\\' y=\\'58\\' width=\\'68\\' height=\\'34\\' rx=\\'3\\' fill=\\'%230f1512\\' opacity=\\'.12\\'/></svg>');";
   const img = zx
-    ? '<img class="press-photo" src="/img/zentex/'+zentexPhoto(p)+'.jpg" alt="Zentex '+p.id+'" loading="lazy">'
-    : '<img class="press-photo" src="/img/bramidan/'+bramidanPhoto(p)+'.webp" alt="Bramidan '+p.id+'" loading="lazy">';
+    ? '<img class="press-photo" src="/img/zentex/'+zentexPhoto(p)+'.jpg" alt="Zentex '+p.id+'" loading="lazy" onerror="'+imgFallback+'">'
+    : '<img class="press-photo" src="/img/bramidan/'+bramidanPhoto(p)+'.webp" alt="Bramidan '+p.id+'" loading="lazy" onerror="'+imgFallback+'">';
   const ztype = zx ? zentexTypeInfo(p) : null;
   const zwaste = zx ? zentexWaste(p) : null;
   const links = zx
