@@ -489,12 +489,17 @@ footer.foot a:hover{color:var(--gold)}
 /* ===== PRINT / NABÍDKA DOKUMENT ===== */
 #offerDoc{background:#fff;color:#1a1c1e}
 @media print{
-  body{background:#fff}
-  header.top,.tabs,.top-actions,.offer-bar,.hero,.btn{display:none!important}
-  .panel{display:none!important}
-  #panel-offer.active{display:block!important;margin:0}
-  .wrap{padding:0;max-width:none}
-  #offerDoc{box-shadow:none;border:none}
+  /* Tisk nabídky — aktivní jen když má body class print-offer (nastaví tlačítko Export PDF).
+     Vynutí zobrazení offer panelu (i když není aktivní záložka) a skryje tmavé UI,
+     ať se nikdy netiskne prázdná stránka. Vzor dle fungujícího tisku smlouvy. */
+  @page{size:A4;margin:1.2cm}
+  body.print-offer{background:#fff!important}
+  body.print-offer header.top, body.print-offer .tabs, body.print-offer .top-actions,
+  body.print-offer .offer-bar, body.print-offer .hero, body.print-offer .btn, body.print-offer .foot{display:none!important}
+  body.print-offer .panel{display:none!important}
+  body.print-offer #panel-offer{display:block!important;margin:0}
+  body.print-offer .wrap{padding:0;max-width:none}
+  body.print-offer #offerDoc{box-shadow:none!important;border:none!important}
 }
 /* Tisk smlouvy - aktivní jen když body má class print-contract */
 @media print{
@@ -3013,7 +3018,7 @@ function renderOffer(){
     </div>
     ${offerDocHTML(sel)}`;
   el.querySelectorAll('[data-chip]').forEach(b=>b.onclick=()=>{toggleOfferSilent(b.dataset.chip);renderOffer();});
-  document.getElementById('printOfferBtn').onclick=()=>{ saveToHistory('PDF'); window.print(); };
+  document.getElementById('printOfferBtn').onclick=()=>{ saveToHistory('PDF'); printOfferPDF(); };
   document.getElementById('offerExcelBtn').onclick=()=>{ saveToHistory('Excel'); exportExcel(); };
   document.getElementById('offerMailBtn').onclick=()=>{ saveToHistory('E-mail'); sendEmail(); };
   document.getElementById('offerSaveBtn').onclick=()=>{ const e=saveToHistory('ruční'); if(e)toast('Nabídka uložena do historie'); };
@@ -4613,6 +4618,14 @@ function toggleOfferSilent(id){
   const i=STATE.selectedForOffer.indexOf(id);
   if(i>=0)STATE.selectedForOffer.splice(i,1); else STATE.selectedForOffer.push(id);
   updateCounts();
+}
+/* Tisk nabídky do PDF — přidá body.print-offer (spustí tiskové CSS jen pro #offerDoc), po tisku uklidí. */
+function printOfferPDF(){
+  document.body.classList.add('print-offer');
+  var cleanup=function(){ document.body.classList.remove('print-offer'); window.removeEventListener('afterprint',cleanup); };
+  window.addEventListener('afterprint',cleanup);
+  setTimeout(cleanup,4000); // pojistka, kdyby afterprint nedorazil
+  window.print();
 }
 function offerDocHTML(sel){
   const cl=STATE.client;
@@ -6683,7 +6696,7 @@ function bindTopActions(){
   document.getElementById('authBtn').onclick=openAuthModal;
   document.getElementById('btnPrint').onclick=()=>{
     if(!STATE.selectedForOffer.length){ switchTab('compare'); toast('Nejprve přidejte lisy do nabídky'); return; }
-    switchTab('offer'); setTimeout(()=>window.print(),300);
+    switchTab('offer'); setTimeout(printOfferPDF,300);
   };
 }
 
