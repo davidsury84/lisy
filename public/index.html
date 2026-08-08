@@ -3036,7 +3036,7 @@ function renderOffer(){
   el.querySelectorAll('[data-chip]').forEach(b=>b.onclick=()=>{toggleOfferSilent(b.dataset.chip);renderOffer();});
   document.getElementById('printOfferBtn').onclick=()=>{ saveToHistory('PDF'); printOfferPDF(); };
   document.getElementById('offerExcelBtn').onclick=()=>{ saveToHistory('Excel'); exportExcel(); };
-  document.getElementById('offerMailBtn').onclick=()=>{ saveToHistory('E-mail'); sendEmail(); };
+  document.getElementById('offerMailBtn').onclick=()=>{ sendEmail(); };
   document.getElementById('offerSaveBtn').onclick=()=>{ const e=saveToHistory('ruční'); if(e)toast('Nabídka uložena do historie'); };
 }
 
@@ -6659,6 +6659,7 @@ function openEmailModal(){
     const wantXls=document.getElementById('emXls').checked;
     const wantPdf=document.getElementById('emPdf').checked && hasOffer;
     const {subj,body,cc}=buildMailto();
+    try{ saveToHistory('E-mail'); }catch(e){}   // uložit do historie při skutečném odeslání (obě vstupní tlačítka)
     // 1) stáhni přílohy
     if(wantXls){ exportExcel(true); }
     // 2) otevři e-mail (s malým zpožděním, ať se stihne stáhnout)
@@ -6674,7 +6675,7 @@ function openEmailModal(){
         window.location.href=`mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subj)}${cc?'&cc='+encodeURIComponent(cc):''}&body=${encodeURIComponent(body)}`;
       }
       // 3) PDF tisk (po otevření e-mailu)
-      if(wantPdf){ setTimeout(()=>window.print(), 600); }
+      if(wantPdf){ setTimeout(()=>{ try{ switchTab('offer'); }catch(e){} setTimeout(printOfferPDF,250); }, 600); }
     }, wantXls?500:0);
     close();
     toast(wantXls||wantPdf?'Příloha stažena · otevírám e-mail':'Otevírám e-mail');
