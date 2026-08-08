@@ -5,30 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kalkulátor lisů · ELKOPLAST CZ — Bramidan</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Spline+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root{
-  --bg:#0e1116; --bg2:#141821; --panel:#171c26; --panel2:#1d2330;
-  --line:#2a3140; --line2:#363f52;
-  --ink:#f2f5fa; --ink2:#aeb7c6; --muted:#737d8f;
-  --gold:#ffce1f; --gold-d:#e8b400; --gold-soft:rgba(255,206,31,.12);
-  --steel:#5a7fb5; --steel-soft:rgba(90,127,181,.14);
-  --green:#3ad17e; --green-soft:rgba(58,209,126,.12);
-  --red:#ff6b5e; --red-soft:rgba(255,107,94,.12);
+  /* Sjednoceno s intranetem (mobilní rozhlas): světlá zeleno-žlutá paleta + IBM Plex */
+  --bg:#eef1ec; --bg2:#f6f8f4; --panel:#ffffff; --panel2:#f2f5f0;
+  --line:#e3e7e0; --line2:#cdd3ca;
+  --ink:#0f1512; --ink2:#5b635c; --muted:#8a938a;
+  --gold:#ffd21a; --gold-d:#e0b800; --gold-soft:rgba(255,210,26,.16);
+  --steel:#0e8a43; --steel-soft:rgba(14,138,67,.10);
+  --green:#0e8a43; --green-soft:#e6f6ec;
+  --red:#c23636; --red-soft:#fbe9e7;
   --r:16px; --r-sm:10px;
-  --sh:0 2px 8px rgba(0,0,0,.3),0 18px 50px -22px rgba(0,0,0,.7);
-  --sh-gold:0 8px 30px -10px rgba(255,206,31,.35);
-  --sans:'Spline Sans',-apple-system,BlinkMacSystemFont,sans-serif;
-  --disp:'Sora',sans-serif;
-  --mono:'Spline Sans Mono',ui-monospace,monospace;
+  --sh:0 1px 3px rgba(15,21,18,.05),0 14px 34px -20px rgba(15,21,18,.22);
+  --sh-gold:0 6px 20px -8px rgba(255,210,26,.45);
+  --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --disp:'IBM Plex Sans',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{
   font-family:var(--sans); color:var(--ink); line-height:1.55;
   background:
-    radial-gradient(900px 480px at 88% -8%, rgba(255,206,31,.10), transparent 60%),
-    radial-gradient(700px 500px at -6% 4%, rgba(90,127,181,.10), transparent 55%),
+    radial-gradient(900px 480px at 88% -8%, rgba(255,210,26,.12), transparent 60%),
+    radial-gradient(700px 500px at -6% 4%, rgba(14,138,67,.08), transparent 55%),
     var(--bg);
   background-attachment:fixed; min-height:100vh;
   -webkit-font-smoothing:antialiased; font-size:15px;
@@ -39,7 +40,7 @@ h1,h2,h3,h4{font-family:var(--disp);letter-spacing:-.02em;line-height:1.12}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 /* ===== HEADER ===== */
-header.top{position:sticky;top:0;z-index:60;background:rgba(14,17,22,.82);backdrop-filter:blur(16px) saturate(160%);border-bottom:1px solid var(--line)}
+header.top{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.86);backdrop-filter:blur(16px) saturate(160%);border-bottom:1px solid var(--line)}
 .top-in{max-width:1300px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:13px}
 .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,var(--gold),var(--gold-d));display:grid;place-items:center;flex:none;box-shadow:var(--sh-gold);position:relative;overflow:hidden}
@@ -49,7 +50,7 @@ header.top{position:sticky;top:0;z-index:60;background:rgba(14,17,22,.82);backdr
 .brand .sub{font-size:11.5px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase;margin-top:1px}
 .top-actions{margin-left:auto;display:flex;gap:9px;flex-wrap:wrap}
 .btn{font:inherit;font-size:13px;font-weight:600;border:1px solid var(--line2);background:var(--panel2);color:var(--ink);padding:9px 15px;border-radius:10px;cursor:pointer;transition:.16s;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-.btn:hover{border-color:var(--steel);transform:translateY(-1px);background:#222a3a}
+.btn:hover{border-color:var(--green);transform:translateY(-1px);background:var(--green-soft)}
 .btn.gold{background:linear-gradient(135deg,var(--gold),var(--gold-d));border-color:var(--gold-d);color:#1a1500;font-weight:700}
 .btn.gold:hover{filter:brightness(1.06);box-shadow:var(--sh-gold)}
 .btn svg{width:15px;height:15px}
@@ -89,7 +90,7 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .serv-info svg{width:17px;height:17px;flex:none;color:var(--green);margin-top:1px}
 .serv-info b{color:var(--ink)}
 
-.reco{margin-top:22px;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,#1c2433,#141a26);border:1px solid var(--line2);position:relative;overflow:hidden}
+.reco{margin-top:22px;padding:18px 20px;border-radius:14px;background:linear-gradient(135deg,var(--green-soft),#fff);border:1px solid var(--line2);position:relative;overflow:hidden}
 .reco::after{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,var(--gold-soft),transparent 70%)}
 .reco .rl{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
 .reco .rv{font-size:16px;font-weight:700;margin-top:5px;font-family:var(--disp)}
@@ -323,7 +324,7 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .press.best{border:1.5px solid var(--gold-d);box-shadow:0 0 0 1px var(--gold-d),var(--sh-gold),var(--sh)}
 .press .crown{position:absolute;top:0;left:0;right:0;background:linear-gradient(90deg,var(--gold),var(--gold-d));color:#1a1500;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:5px;z-index:4}
 .press.best .press-img{margin-top:26px}
-.press-img{height:200px;background:radial-gradient(circle at 50% 35%,#222a38,#10141c);display:grid;place-items:center;border-bottom:1px solid var(--line);position:relative;padding:18px}
+.press-img{height:200px;background:radial-gradient(circle at 50% 35%,#f7f9f4,#e9ede6);display:grid;place-items:center;border-bottom:1px solid var(--line);position:relative;padding:18px}
 .press-img svg{height:100%;width:auto;max-width:100%;filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))}
 .serie-tag{position:absolute;top:13px;left:13px;font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 10px;border-radius:7px;z-index:3}
 .serie-tag.X{background:var(--steel);color:#fff}
@@ -427,11 +428,11 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 table.cmp{width:100%;border-collapse:collapse;font-size:13px;min-width:820px}
 table.cmp th,table.cmp td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
 table.cmp th:first-child,table.cmp td:first-child{text-align:left}
-table.cmp thead th{background:#10141c;color:var(--ink2);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:2}
+table.cmp thead th{background:#eaeee6;color:var(--ink2);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:2}
 table.cmp thead th.best-col{color:var(--gold)}
 table.cmp td:first-child{font-weight:700;color:var(--ink)}
 table.cmp tbody tr:hover td{background:rgba(255,206,31,.04)}
-table.cmp tr.sec td{background:#10141c;font-weight:800;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left}
+table.cmp tr.sec td{background:#eaeee6;font-weight:800;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left}
 table.cmp .best-col{background:var(--gold-soft)}
 table.cmp .hl{color:var(--green);font-weight:800}
 
@@ -453,7 +454,7 @@ table.cmp .hl{color:var(--green);font-weight:800}
 table.edit{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
 table.edit th,table.edit td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right}
 table.edit th:first-child,table.edit td:first-child{text-align:left}
-table.edit thead th{background:#10141c;color:var(--ink2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;position:sticky;top:0}
+table.edit thead th{background:#eaeee6;color:var(--ink2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;position:sticky;top:0}
 table.edit td:first-child{font-weight:700;color:var(--ink)}
 table.edit input{width:100px;font:inherit;font-family:var(--mono);font-size:12.5px;font-weight:600;text-align:right;border:1px solid var(--line2);border-radius:8px;padding:7px 9px;background:var(--bg);color:var(--gold)}
 table.edit input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft)}
