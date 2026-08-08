@@ -334,6 +334,10 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .pbody .ptag{font-size:12px;color:var(--muted);font-weight:600;margin-top:3px}
 .spec-mini{margin-top:15px;display:grid;grid-template-columns:1fr 1fr;gap:11px 12px}
 .pdesc{margin-top:10px;padding:10px 13px;background:var(--bg);border-left:3px solid var(--gold);border-radius:0 7px 7px 0;font-size:12px;color:var(--ink2);line-height:1.55}
+.ztype{margin-top:8px;padding:9px 12px;background:var(--panel2,#f4f2ea);border:1px solid var(--line2);border-radius:9px;font-size:11.8px;color:var(--ink2);line-height:1.5}
+.ztype b{color:var(--ink)}
+.ztype a{color:var(--gold-d,#8a6d00);font-weight:700;text-decoration:none;white-space:nowrap}
+.ztype a:hover{text-decoration:underline}
 .spec-mini .sm{font-size:11px;color:var(--muted);font-weight:600}
 .spec-mini .sm b{display:block;font-size:13.5px;color:var(--ink);font-weight:700;margin-top:1px;font-family:var(--disp)}
 
@@ -1003,6 +1007,35 @@ const COMPACTORS = [
  {id:"XL 20 HMR TD",code:"PP-XL/20 HMR",carrier:"Hákový (R)",vol:20,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"HMR/TD",eur:18047,nakup:442200,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:8,maxT:14, oil:100,
   desc:"Mobilní lisovací kontejner 20 m³ na hákový nosič, vysoké síly 400 kN (XL). Vhodné pro: průmyslové podniky, logistická centra, velké recyklační provozy (5–12 t/měs) — těžké materiály — směsný papír, kovové obaly, hutnější plasty. Translační dveře pro snadné vyklápění. Vysoká modulová střecha (HMR) pro lehčí objemné frakce."}
 ];
+
+/* Typová nápověda k Zentex modelu do nabídky: na co je + odkaz na zentex.pl (zdroj: ceník Zentex 2026) */
+function zentexTypeInfo(p){
+  const id=(p.id||''), hop=(p.hopper||'SHA').toUpperCase();
+  let serie='N';
+  if(/^SW/.test(id)) serie='SW';
+  else if(/^XL/.test(id)) serie='XL';
+  else if(/^L\b/.test(id)) serie='L';
+  else if(/^N\b/.test(id)) serie='N';
+  else if(/^R\b/.test(id)) serie='R';
+  else if(/^Z\b/.test(id)) serie='Z';
+  const U={
+    Z:'jen řetězový nosič, pro menší provozy (6–14 m³).',
+    R:'hákový nosič (i menší hákové vozy), 6–14 m³.',
+    N:'hákový, velkoobjemový standard (16–24 m³), lze silnější hydraulika.',
+    L:'hákový, velkoobjemový s větším plnicím otvorem (16–24 m³).',
+    XL:'heavy-duty, síla 400 kN, translační dveře (TD) — těžké a náročné provozy.',
+    SW:'silnostěnná konstrukce pro náročné a abrazivní provozy.'
+  };
+  const label = serie==='SW' ? 'Zentex SW (silnostěnná)' : ('Zentex řada '+serie);
+  let ucel = U[serie]||'';
+  if(hop.includes('MR')) ucel+=' Střecha MR/HMR pro objemný lehký materiál.';
+  if((/TD/.test(hop)||/TD/.test(id)) && serie!=='XL') ucel+=' Translační (posuvné) dveře.';
+  let zurl='https://www.zentex.pl/en/#';
+  if(serie==='SW'||hop==='SW') zurl='https://www.zentex.pl/en/products/mobile-compactor-type-sw/type-sw-sha.html';
+  else if(hop.includes('MR')&&serie==='XL') zurl='https://www.zentex.pl/en/products/mobile-compactor-type-mr/type-xl-mr.html';
+  else if(hop.includes('MR')) zurl='https://www.zentex.pl/en/products/mobile-compactor-type-mr/type-n-mr.html';
+  return {label, ucel, zurl};
+}
 
 /* ---------- POMOCNÉ ---------- */
 const czk = n => Math.round(n).toLocaleString('cs-CZ')+" Kč";
@@ -2433,9 +2466,10 @@ function pressCard(p,c,best){
   const serieTag = zx ? `<span class="serie-tag X">${p.hopper}</span>` : `<span class="serie-tag ${p.serie}">${p.serie}-série</span>`;
   const door=(!zx && p.door)?`<span class="door-tag">${p.door} dveře</span>`:'';
   const img = zx ? compactorSVG(p) : pressSVG(p);
+  const ztype = zx ? zentexTypeInfo(p) : null;
   const links = zx
-    ? `<a class="plink" href="https://www.zentex.pl/" target="_blank">${I.ext} Zentex</a>
-       <a class="plink doc" href="https://www.zentex.pl/" target="_blank">${I.doc} Dokumentace</a>`
+    ? `<a class="plink" href="${ztype.zurl}" target="_blank">${I.ext} Typ na zentex.pl</a>
+       <a class="plink doc" href="${ztype.zurl}" target="_blank">${I.doc} Specifikace</a>`
     : `<a class="plink" href="${p.url}" target="_blank">${I.ext} Produkt</a>
        <a class="plink doc" href="${p.doc}" target="_blank">${I.doc} Dokumentace</a>`;
   // Doporučení obchodníkovi
@@ -2494,6 +2528,7 @@ function pressCard(p,c,best){
       <h3>${zx?'Zentex ':''}${p.id}</h3>
       <div class="ptag">${tag}</div>
       <div class="pdesc">${p.desc||''}</div>
+      ${zx&&ztype?`<div class="ztype"><b>${ztype.label}</b> — ${ztype.ucel} <a href="${ztype.zurl}" target="_blank" rel="noopener">Detail typu na zentex.pl ↗</a></div>`:''}
       ${ratingBlock}
       <div class="spec-mini">${specMini}</div>
       <div class="pprice">${priceBlock}</div>
