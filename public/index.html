@@ -325,6 +325,7 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .press .crown{position:absolute;top:0;left:0;right:0;background:linear-gradient(90deg,var(--gold),var(--gold-d));color:#1a1500;font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:5px;z-index:4}
 .press.best .press-img{margin-top:26px}
 .press-img{height:200px;background:radial-gradient(circle at 50% 35%,#f7f9f4,#e9ede6);display:grid;place-items:center;border-bottom:1px solid var(--line);position:relative;padding:18px}
+.press-photo{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 8px 18px rgba(15,21,18,.14))}
 .press-img svg{height:100%;width:auto;max-width:100%;filter:drop-shadow(0 12px 24px rgba(0,0,0,.5))}
 .serie-tag{position:absolute;top:13px;left:13px;font-size:10px;font-weight:800;letter-spacing:.08em;padding:4px 10px;border-radius:7px;z-index:3}
 .serie-tag.X{background:var(--steel);color:#fff}
@@ -1076,6 +1077,18 @@ function zentexWaste(p){
   if(hop==='SW') vhodne=vhodne.concat(['Náročné / abrazivní provozy']);
   if(hop.includes('MR')) vhodne=vhodne.concat(['Objemný lehký materiál']);
   return {vhodne, pozor};
+}
+
+/* Reálná produktová fotka Zentex modelu (self-hosted z /img/zentex, zdroj zentex.pl) dle typu */
+function zentexPhoto(p){
+  var id=(p.id||''), hop=(p.hopper||'').toUpperCase();
+  if(/^SWZ/.test(id)) return 'swzsha';
+  if(/^SWR/.test(id)) return 'swrsha';
+  if(/^SW\b/.test(id)) return 'swsha';
+  if(/^L-?W/.test(id)) return 'lwsha';
+  var serie = /^XL/.test(id)?'xl' : /^L\b/.test(id)?'l' : /^N\b/.test(id)?'n' : /^R\b/.test(id)?'r' : /^Z\b/.test(id)?'z' : 'n';
+  if(hop.includes('MR')) return (serie==='l'||serie==='xl'||serie==='n') ? serie+'mr' : 'nmr';
+  return serie+'sha';
 }
 
 /* ---------- POMOCNÉ ---------- */
@@ -2516,7 +2529,9 @@ function pressCard(p,c,best){
         <div class="sm">Motor / olej<b style="font-size:11.5px">${p.kw||'—'} kW · ${p.oil||'—'} L</b></div>`;
   const serieTag = zx ? `<span class="serie-tag X">${p.hopper}</span>` : `<span class="serie-tag ${p.serie}">${p.serie}-série</span>`;
   const door=(!zx && p.door)?`<span class="door-tag">${p.door} dveře</span>`:'';
-  const img = zx ? compactorSVG(p) : pressSVG(p);
+  const img = zx
+    ? '<img class="press-photo" src="/img/zentex/'+zentexPhoto(p)+'.jpg" alt="Zentex '+p.id+'" loading="lazy">'
+    : pressSVG(p);
   const ztype = zx ? zentexTypeInfo(p) : null;
   const zwaste = zx ? zentexWaste(p) : null;
   const links = zx
