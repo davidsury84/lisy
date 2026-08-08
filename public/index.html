@@ -1647,12 +1647,24 @@ function compactorRating(p, ctx){
   else if(cyklusZaMesic > 0.5) s.velikost = 30; // < 1 svoz/měs, perfektní
   else                         s.velikost = 18; // < 0.5 svoz/měs - kontejner přebytkový
 
-  // 3c) Síla lisu vs. materiál (15 b)
-  if(ctx.materialHeavy && p.force >= 400)        s.sila = 15;
-  else if(ctx.materialHeavy && p.force >= 320)   s.sila = 10;
-  else if(ctx.materialHeavy && p.force >= 300)   s.sila = 6;
-  else if(!ctx.materialHeavy && p.force >= 400)  s.sila = 12; // XL pro lehký = předimenzování
-  else if(!ctx.materialHeavy && p.force >= 300)  s.sila = 15; // standard sedí
+  // 3c) Síla lisu vs. materiál (15 b) — přísně, aby se nenabídl poddimenzovaný model
+  const isKov = ctx.materialKey === 'kov';
+  if(isKov){
+    if(p.force >= 400)      s.sila = 15;
+    else if(p.force >= 320) s.sila = 8;
+    else                    s.sila = 0;    // 300 kN na kovové obaly = nevhodné
+  } else if(ctx.materialHeavy){
+    if(p.force >= 400)      s.sila = 15;
+    else if(p.force >= 320) s.sila = 12;
+    else                    s.sila = 4;    // 300 kN na těžký materiál = slabé
+  } else {
+    if(p.force >= 400)      s.sila = 12;   // XL na lehký = předimenzování
+    else                    s.sila = 15;   // standard 300/320 kN sedí
+  }
+  // Tvrdý postih za jednoznačně nedostatečnou sílu — takový model nesmí vyjít jako „nejvýhodnější"
+  let forcePenalty = 0;
+  if(isKov && p.force < 320)                   forcePenalty = 45;  // kov na 300 kN — zásadně nevhodné
+  else if(ctx.materialHeavy && p.force < 320)  forcePenalty = 22;  // těžký materiál na 300 kN — poddimenzované
 
   // 3d) Frekvence svozů (20 b) — méně = lepší
   if(potrebnaFrekvence <= 0.5)      s.frekvence = 20;  // < 1× za 2 měs
@@ -1667,7 +1679,7 @@ function compactorRating(p, ctx){
   const cenaNorm = Math.max(0, Math.min(1, (maxNakup - p.nakup) / (maxNakup - minNakup)));
   s.cena = Math.round(10 * cenaNorm);
 
-  s.total = s.sweetSpot + s.velikost + s.sila + s.frekvence + s.cena;
+  s.total = Math.max(0, s.sweetSpot + s.velikost + s.sila + s.frekvence + s.cena - forcePenalty);
 
   return {
     score: s,
