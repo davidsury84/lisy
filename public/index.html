@@ -346,6 +346,10 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .ztype b{color:var(--ink)}
 .ztype a{color:var(--gold-d,#8a6d00);font-weight:700;text-decoration:none;white-space:nowrap}
 .ztype a:hover{text-decoration:underline}
+.zopts{margin-top:8px;padding:9px 12px;background:var(--panel2,#f4f2ea);border:1px dashed var(--line2);border-radius:9px;font-size:11.5px;color:var(--ink2);line-height:1.55}
+.zopts b{color:var(--ink)}
+.zopts .zopt{margin-top:3px}
+.zopts .zopt .p{color:var(--green,#0e8a43);font-weight:800;white-space:nowrap}
 .spec-mini .sm{font-size:11px;color:var(--muted);font-weight:600}
 .spec-mini .sm b{display:block;font-size:13.5px;color:var(--ink);font-weight:700;margin-top:1px;font-family:var(--disp)}
 
@@ -1018,12 +1022,53 @@ const COMPACTORS = [
  {id:"XL 16 HMR TD",code:"PP-XL/16 HMR",carrier:"Hákový (R)",vol:16,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"HMR/TD",eur:17781,nakup:435600,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:6,maxT:12, oil:100,
   desc:"Mobilní lisovací kontejner 16 m³ na hákový nosič, vysoké síly 400 kN (XL). Vhodné pro: velké prodejny, výrobní podniky, recyklační dvory (4–10 t/měs) — těžké materiály — směsný papír, kovové obaly, hutnější plasty. Translační dveře pro snadné vyklápění. Vysoká modulová střecha (HMR) pro lehčí objemné frakce."},
  {id:"XL 20 HMR TD",code:"PP-XL/20 HMR",carrier:"Hákový (R)",vol:20,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"HMR/TD",eur:18047,nakup:442200,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:8,maxT:14, oil:100,
-  desc:"Mobilní lisovací kontejner 20 m³ na hákový nosič, vysoké síly 400 kN (XL). Vhodné pro: průmyslové podniky, logistická centra, velké recyklační provozy (5–12 t/měs) — těžké materiály — směsný papír, kovové obaly, hutnější plasty. Translační dveře pro snadné vyklápění. Vysoká modulová střecha (HMR) pro lehčí objemné frakce."}
+  desc:"Mobilní lisovací kontejner 20 m³ na hákový nosič, vysoké síly 400 kN (XL). Vhodné pro: průmyslové podniky, logistická centra, velké recyklační provozy (5–12 t/měs) — těžké materiály — směsný papír, kovové obaly, hutnější plasty. Translační dveře pro snadné vyklápění. Vysoká modulová střecha (HMR) pro lehčí objemné frakce."},
+
+  /* ===== SPECIÁLNÍ MOBILNÍ MODELY (ceník 2026) ===== */
+  /* R-FS — fast-food lis (řada R, hákový). Ceny dle ceníku. */
+  {id:"R-FS 10 SHA",code:"PP-R-FS/10",carrier:"Hákový (R)",vol:10,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SHA",eur:14476,nakup:354700,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:2,maxT:6, oil:60, special:true,
+   desc:"Fast-food lisovací kontejner R-FS 10 m³ na hákový nosič, síla 300 kN. Vhodné pro: fast-foody, gastro provozy, food-courty, nákupní centra — obalový odpad z jídla (lepenka, kelímky, PET, fólie). Nižší hlučnost, uzavřené plnění proti zápachu a hlodavcům."},
+  {id:"R-FS 12 SHA",code:"PP-R-FS/12",carrier:"Hákový (R)",vol:12,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SHA",eur:14717,nakup:360600,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:3,maxT:7, oil:60, special:true,
+   desc:"Fast-food lisovací kontejner R-FS 12 m³ na hákový nosič, síla 300 kN. Vhodné pro: fast-foody, gastro provozy, food-courty, nákupní centra — obalový odpad z jídla (lepenka, kelímky, PET, fólie). Nižší hlučnost, uzavřené plnění proti zápachu a hlodavcům."},
+  {id:"R-FS 14 SHA",code:"PP-R-FS/14",carrier:"Hákový (R)",vol:14,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SHA",eur:14958,nakup:366500,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:3,maxT:8, oil:60, special:true,
+   desc:"Fast-food lisovací kontejner R-FS 14 m³ na hákový nosič, síla 300 kN. Vhodné pro: fast-foody, gastro provozy, food-courty, nákupní centra — obalový odpad z jídla (lepenka, kelímky, PET, fólie). Nižší hlučnost, uzavřené plnění proti zápachu a hlodavcům."},
+
+  /* L-SO1 — jedna strana otevřená, pro expandující materiál (jen verze S = 300 kN). Ceny dle ceníku. */
+  {id:"L 16 SO1",code:"PP-L/16 SO1",carrier:"Hákový (R)",vol:16,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SO1",eur:17878,nakup:438000,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:4,maxT:10, oil:80, special:true,
+   desc:"Mobilní kontejner L 16 m³ SO1 — otevřená jedna boční strana pro EXPANDUJÍCÍ materiál (např. napěněné plasty, EPS, objemné fólie, dřevní odřezky), který by běžný uzavřený lis vytlačoval zpět. Jen verze „S” (300 kN). Hákový nosič."},
+  {id:"L 18 SO1",code:"PP-L/18 SO1",carrier:"Hákový (R)",vol:18,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SO1",eur:17998,nakup:441000,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:11, oil:80, special:true,
+   desc:"Mobilní kontejner L 18 m³ SO1 — otevřená jedna boční strana pro EXPANDUJÍCÍ materiál (napěněné plasty, EPS, objemné fólie, dřevní odřezky). Jen verze „S” (300 kN). Hákový nosič."},
+  {id:"L 20 SO1",code:"PP-L/20 SO1",carrier:"Hákový (R)",vol:20,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SO1",eur:18119,nakup:443900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:12, oil:80, special:true,
+   desc:"Mobilní kontejner L 20 m³ SO1 — otevřená jedna boční strana pro EXPANDUJÍCÍ materiál (napěněné plasty, EPS, objemné fólie, dřevní odřezky). Jen verze „S” (300 kN). Hákový nosič."},
+  {id:"L 22 SO1",code:"PP-L/22 SO1",carrier:"Hákový (R)",vol:22,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SO1",eur:18240,nakup:446900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:13, oil:80, special:true,
+   desc:"Mobilní kontejner L 22 m³ SO1 — otevřená jedna boční strana pro EXPANDUJÍCÍ materiál (napěněné plasty, EPS, objemné fólie, dřevní odřezky). Jen verze „S” (300 kN). Hákový nosič."},
+  {id:"L 24 SO1",code:"PP-L/24 SO1",carrier:"Hákový (R)",vol:24,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"SO1",eur:18360,nakup:449800,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:14, oil:80, special:true,
+   desc:"Mobilní kontejner L 24 m³ SO1 — otevřená jedna boční strana pro EXPANDUJÍCÍ materiál (napěněné plasty, EPS, objemné fólie, dřevní odřezky). Jen verze „S” (300 kN). Hákový nosič."},
+
+  /* L-DB SO2 — dělený, otevřené OBĚ strany (jen verze S). V ceníku bez pevné ceny — na vyžádání dle dělení; cena orientační dle L-SO1. */
+  {id:"L 16 DB SO2",code:"PP-L/16 DB SO2",carrier:"Hákový (R)",vol:16,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:17878,nakup:438000,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:4,maxT:10, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner L 16 m³ DB SO2 — otevřené OBĚ boční strany, dělení objemu 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle způsobu dělení na vyžádání."},
+  {id:"L 18 DB SO2",code:"PP-L/18 DB SO2",carrier:"Hákový (R)",vol:18,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:17998,nakup:441000,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:11, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner L 18 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."},
+  {id:"L 20 DB SO2",code:"PP-L/20 DB SO2",carrier:"Hákový (R)",vol:20,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:18119,nakup:443900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:12, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner L 20 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."},
+  {id:"L 22 DB SO2",code:"PP-L/22 DB SO2",carrier:"Hákový (R)",vol:22,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:18240,nakup:446900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:13, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner L 22 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."},
+  {id:"L 24 DB SO2",code:"PP-L/24 DB SO2",carrier:"Hákový (R)",vol:24,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:18360,nakup:449800,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:14, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner L 24 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."}
 ];
 
 /* Typová nápověda k Zentex modelu do nabídky: na co je + odkaz na zentex.pl (zdroj: ceník Zentex 2026) */
 function zentexTypeInfo(p){
   const id=(p.id||''), hop=(p.hopper||'SHA').toUpperCase();
+  const B0='https://www.zentex.pl/en/products/';
+  // Speciální mobilní typy mají vlastní typové stránky a účel
+  if(/^R-FS/.test(id))
+    return {label:'Zentex R-FS (fast-food)', ucel:'Hákový lis pro gastro/fast-food — uzavřené plnění proti zápachu a hlodavcům, tišší chod. Obalový odpad z jídla (lepenka, kelímky, PET, fólie).', zurl:B0+'mobile-compactor-type-sha/type-r-sha.html'};
+  if(/DB SO2/i.test(id))
+    return {label:'Zentex L-DB SO2 (dělený)', ucel:'Dělený kontejner s otevřenými OBĚMA stranami — dvě frakce v jednom (dělení 50/50, 60/40, 70/30). Jen verze „S” (300 kN). Cena na vyžádání dle dělení.', zurl:B0+'mobile-compactor-type-db-so2/type-l-db-so2.html'};
+  if(/SO1/i.test(id))
+    return {label:'Zentex L-SO1 (jedna strana otevřená)', ucel:'Otevřená jedna boční strana pro EXPANDUJÍCÍ materiál (napěněné plasty, EPS, objemné fólie, dřevní odřezky), který uzavřený lis vytlačuje zpět. Jen verze „S” (300 kN).', zurl:B0+'mobile-compactor-type-l-so/typ-l-so.html'};
   let serie='N';
   if(/^SW/.test(id)) serie='SW';
   else if(/^XL/.test(id)) serie='XL';
@@ -1077,6 +1122,18 @@ function zentexWaste(p){
   if(hop==='SW') vhodne=vhodne.concat(['Náročné / abrazivní provozy']);
   if(hop.includes('MR')) vhodne=vhodne.concat(['Objemný lehký materiál']);
   return {vhodne, pozor};
+}
+
+/* Volitelné příplatky (ceník 2026) — nejsou samostatné typy, ale opce k lisu. Ceny orientační (nákupní EUR × kurz, dle výkresu). */
+function zentexOptions(p){
+  const opts=[];
+  // PTO — hydraulické posuvné víko poháněné vývodovým hřídelem vozidla (plnění bez el. přípojky) — pro mobilní hákové nasazení
+  if(/hák/i.test(p.carrier||''))
+    opts.push({name:'PTO hydraulické posuvné víko', desc:'plnění bez el. přípojky — poháněno vývodovým hřídelem vozidla (dle výkresu)', price:'~54 100 Kč'});
+  // SPOON — lžícový plnicí systém pro objemný/špatně stlačitelný materiál — hlavně XL
+  if((p.force||0)>=400)
+    opts.push({name:'SPOON systém (lžícové plnění)', desc:'pro objemný / špatně stlačitelný materiál — konstrukce + integrované zařízení (dle výkresu)', price:'od ~207 000 Kč'});
+  return opts;
 }
 
 /* Reálná produktová fotka Zentex modelu (self-hosted z /img/zentex, zdroj zentex.pl) dle typu */
@@ -1613,7 +1670,7 @@ function najemZakladLabel(){ return 'nákupní'; }
 function recommended(t){
   const all = activeProducts();
   const inRange = all.filter(p=>t>=p.minT && t<=p.maxT);
-  const MIN_SHOW = 8;
+  const MIN_SHOW = 12;
   if(inRange.length >= MIN_SHOW) return inRange;
   // Doplň nejbližšími modely (dle vzdálenosti tonáže od zvoleného t), ať obchodník vidí víc variant
   const inSet = new Set(inRange.map(p=>p.id));
@@ -1722,7 +1779,9 @@ function compactorRating(p, ctx){
   const cenaNorm = Math.max(0, Math.min(1, (maxNakup - p.nakup) / (maxNakup - minNakup)));
   s.cena = Math.round(10 * cenaNorm);
 
-  s.total = Math.max(0, s.sweetSpot + s.velikost + s.sila + s.frekvence + s.cena - forcePenalty);
+  // Speciály (R-FS, SO1, DB SO2) jsou niche — lehce upozadit, ať vedou standardní modely, ale zůstanou v nabídce vidět
+  const specialPenalty = p.special ? 6 : 0;
+  s.total = Math.max(0, s.sweetSpot + s.velikost + s.sila + s.frekvence + s.cena - forcePenalty - specialPenalty);
 
   return {
     score: s,
@@ -1762,8 +1821,8 @@ function selectedPresses(){
   if(isZentex()){
     if(STATE.selectMode==='vol')     return STATE.volChoice ? COMPACTORS.filter(p=>String(p.vol)===String(STATE.volChoice)) : [];
     if(STATE.selectMode==='carrier') return STATE.carrierChoice ? COMPACTORS.filter(p=>p.carrier===STATE.carrierChoice) : [];
-    // Default: top 8 podle skóre (rating)
-    return recommendedZentexScored(8).map(s => s.p);
+    // Default: top 12 podle skóre (rating)
+    return recommendedZentexScored(12).map(s => s.p);
   }
   if(STATE.selectMode==='bale')  return STATE.baleChoice ? PRESSES.filter(p=>p.bale===STATE.baleChoice) : [];
   if(STATE.selectMode==='feed')  return STATE.feedChoice ? PRESSES.filter(p=>p.feed===STATE.feedChoice) : [];
@@ -2549,6 +2608,7 @@ function pressCard(p,c,best){
     : '<img class="press-photo" src="/img/bramidan/'+bramidanPhoto(p)+'.webp" alt="Bramidan '+p.id+'" loading="lazy" onerror="'+imgFallback+'">';
   const ztype = zx ? zentexTypeInfo(p) : null;
   const zwaste = zx ? zentexWaste(p) : null;
+  const zopts = zx ? zentexOptions(p) : null;
   const links = zx
     ? `<a class="plink" href="${ztype.zurl}" target="_blank">${I.ext} Typ na zentex.pl</a>
        <a class="plink doc" href="${ztype.zurl}" target="_blank">${I.doc} Specifikace</a>`
@@ -2616,6 +2676,7 @@ function pressCard(p,c,best){
         <div class="zw-spec"><b>Specifikace:</b> objem ${p.vol} m³ · síla ${p.force} kN · ${p.motor||p.kw||'—'} · nosič ${p.carrier}${p.hopper?' · násypka '+p.hopper:''}</div>
       </div>`:''}
       ${zx&&ztype?`<div class="ztype"><b>${ztype.label}</b> — ${ztype.ucel} <a href="${ztype.zurl}" target="_blank" rel="noopener">Detail typu na zentex.pl ↗</a></div>`:''}
+      ${zx&&zopts&&zopts.length?`<div class="zopts"><b>➕ Volitelné příplatky:</b>${zopts.map(o=>'<div class="zopt">• '+o.name+' — <span class="dsc">'+o.desc+'</span> <span class="p">'+o.price+'</span></div>').join('')}</div>`:''}
       ${ratingBlock}
       <div class="spec-mini">${specMini}</div>
       <div class="pprice">${priceBlock}</div>
