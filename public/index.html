@@ -533,23 +533,24 @@ footer.foot a:hover{color:var(--gold)}
   /* Tisk nabídky — aktivní jen když má body class print-offer (nastaví tlačítko Export PDF).
      Vynutí zobrazení offer panelu (i když není aktivní záložka) a skryje tmavé UI,
      ať se nikdy netiskne prázdná stránka. Vzor dle fungujícího tisku smlouvy. */
-  @page{size:A4;margin:1.2cm}
+  @page{size:A4;margin:0}                 /* margin:0 = prohlížeč netiskne vlastní hlavičku/patičku (datum, URL, název) */
   body.print-offer{background:#fff!important}
   body.print-offer header.top, body.print-offer .tabs, body.print-offer .top-actions,
   body.print-offer .offer-bar, body.print-offer .hero, body.print-offer .btn, body.print-offer .foot{display:none!important}
   body.print-offer .panel{display:none!important}
   body.print-offer #panel-offer{display:block!important;margin:0}
   body.print-offer .wrap{padding:0;max-width:none}
-  body.print-offer #offerDoc{box-shadow:none!important;border:none!important}
+  body.print-offer #offerDoc{box-shadow:none!important;border:none!important;padding:14mm 12mm!important}
+  body.print-offer .offer-tech .ts-page{padding-top:14mm!important} /* horní okraj u každé stránky tech. listu (nahrazuje @page margin) */
 }
 /* Tisk technického listu — aktivní jen s body.print-tech */
 @media print{
-  @page{size:A4;margin:1.2cm}
+  @page{size:A4;margin:0}                 /* margin:0 = bez hlavičky/patičky prohlížeče; okraj řeší padding níže */
   body.print-tech > *{display:none!important}                 /* skryj vše na úrovni body */
   body.print-tech #techModal{display:block!important;position:static!important;inset:auto!important;background:#fff!important;padding:0!important;overflow:visible!important}
   body.print-tech #techModalClose, body.print-tech .ts-actions{display:none!important}
   body.print-tech #techModal .ts-scroll{overflow:visible!important;max-height:none!important;max-width:none!important;margin:0!important}
-  body.print-tech #techSheet{box-shadow:none!important;border:none!important;margin:0!important;padding:0!important;width:100%!important;max-width:none!important}
+  body.print-tech #techSheet{box-shadow:none!important;border:none!important;margin:0!important;padding:14mm 12mm!important;width:100%!important;max-width:none!important}
   /* Do PDF nedávat brandovou hlavičku ani patičku — jen název modelu + obsah */
   body.print-tech .ts-head{border-bottom:2px solid #0e8a43!important;padding-bottom:8px!important}
   body.print-tech .ts-head .ts-brand, body.print-tech .ts-head .ts-sub, body.print-tech .ts-foot{display:none!important}
@@ -567,7 +568,7 @@ footer.foot a:hover{color:var(--gold)}
   body.print-contract #panel-contract .offer-bar,
   body.print-contract .panel{display:none!important}
   body.print-contract #panel-contract{display:block!important}
-  body.print-contract #panel-contract .contract-doc{display:block!important;box-shadow:none;border:none;padding:0;margin:0;background:#fff;color:#000;font-size:11pt}
+  body.print-contract #panel-contract .contract-doc{display:block!important;box-shadow:none;border:none;padding:14mm 12mm;margin:0;background:#fff;color:#000;font-size:11pt}
   body.print-contract .wrap{padding:0;max-width:none}
   body.print-contract .contract h1{font-size:18pt}
   body.print-contract .contract h2{font-size:13pt;page-break-after:avoid}
