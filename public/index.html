@@ -577,7 +577,7 @@ footer.foot a:hover{color:var(--gold)}
   body.print-contract .ctr-party,body.print-contract .ctr-price,body.print-contract .spec-tbl{page-break-inside:avoid}
   body.print-contract .ctr-list li{page-break-inside:avoid}
   body.print-contract .ctr-sign{page-break-inside:avoid;margin-top:24pt}
-  @page{size:A4;margin:2cm}
+  @page{size:A4;margin:0}   /* bez záhlaví/zápatí prohlížeče; okraj řeší padding contract-doc */
 }
 .hide{display:none!important}
 /* ===== MODAL PROFILŮ ===== */
