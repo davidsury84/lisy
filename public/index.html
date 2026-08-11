@@ -540,13 +540,15 @@ footer.foot a:hover{color:var(--gold)}
 }
 /* Tisk technického listu — aktivní jen s body.print-tech */
 @media print{
-  body.print-tech header.top, body.print-tech .tabs, body.print-tech .top-actions,
-  body.print-tech .offer-bar, body.print-tech .hero, body.print-tech .foot,
-  body.print-tech .panel, body.print-tech .wrap, body.print-tech #techModalClose,
-  body.print-tech .ts-actions{display:none!important}
-  body.print-tech #techModal{position:static!important;display:block!important;background:#fff!important;padding:0!important}
-  body.print-tech #techModal .ts-scroll{overflow:visible!important;max-height:none!important}
-  body.print-tech #techSheet{box-shadow:none!important;border:none!important;margin:0!important;width:100%!important;max-width:none!important}
+  @page{size:A4;margin:1.2cm}
+  body.print-tech > *{display:none!important}                 /* skryj vše na úrovni body */
+  body.print-tech #techModal{display:block!important;position:static!important;inset:auto!important;background:#fff!important;padding:0!important;overflow:visible!important}
+  body.print-tech #techModalClose, body.print-tech .ts-actions{display:none!important}
+  body.print-tech #techModal .ts-scroll{overflow:visible!important;max-height:none!important;max-width:none!important;margin:0!important}
+  body.print-tech #techSheet{box-shadow:none!important;border:none!important;margin:0!important;padding:0!important;width:100%!important;max-width:none!important}
+  /* Do PDF nedávat brandovou hlavičku ani patičku — jen název modelu + obsah */
+  body.print-tech .ts-head{border-bottom:2px solid #0e8a43!important;padding-bottom:8px!important}
+  body.print-tech .ts-head .ts-brand, body.print-tech .ts-head .ts-sub, body.print-tech .ts-foot{display:none!important}
   body.print-tech .ts-page{page-break-inside:avoid}
 }
 /* Tisk smlouvy - aktivní jen když body má class print-contract */
@@ -1532,7 +1534,7 @@ const AUTH_USER_KEY='elkoplast_auth_user_v1';
 const Auth = {
   token(){ return lsGet(AUTH_TOKEN_KEY); },
   user(){ try{ return JSON.parse(lsGet(AUTH_USER_KEY)||'null'); }catch(e){ return null; } },
-  isLoggedIn(){ return !!this.token() && !!this.user(); },
+  isLoggedIn(){ return !!this.user(); },  // session může být přes cookie (SSO) i bez localStorage tokenu
   setSession(token, user){ lsSet(AUTH_TOKEN_KEY,token); lsSet(AUTH_USER_KEY,JSON.stringify(user)); },
   clear(){ lsRm(AUTH_TOKEN_KEY); lsRm(AUTH_USER_KEY); },
   async _req(path, method, body){
@@ -1559,8 +1561,8 @@ const Auth = {
     this.clear();
   },
   async refreshMe(){
-    if(!this.token()) return null;
-    try{ const d=await this._req('/api/me','GET',null); lsSet(AUTH_USER_KEY,JSON.stringify(d.user)); return d.user; }
+    // Neptáme se na token — session může být přes cookie (SSO). /api/me ověří cookie i Bearer.
+    try{ const d=await this._req('/api/me','GET',null); if(d&&d.user){ lsSet(AUTH_USER_KEY,JSON.stringify(d.user)); return d.user; } return null; }
     catch(e){ return null; }
   },
   // Test, jestli běží server s API (jinak jen offline localStorage režim)
@@ -1571,6 +1573,10 @@ const Auth = {
     return this._svChecked;
   }
 };
+/* Audit — pošle serveru záznam o akci (kdo/kdy/co se loguje serverově). Fire-and-forget. */
+function auditAction(action, detail){
+  try{ Auth._req('/api/audit','POST',{action:action, detail:detail||''}).catch(function(){}); }catch(_){}
+}
 const Profiles = {
   all(){ try{ return JSON.parse(lsGet(PROFILE_KEY)||'[]'); }catch(e){ return []; } },
   save(list){ lsSet(PROFILE_KEY, JSON.stringify(list)); },
@@ -3347,6 +3353,7 @@ function saveToHistory(via){
     sumSale+=c.prodejni; sumOne+=c.oneTimeTotal;
     return {id:p.id, mesic:Math.round(c.celkemMesicVcServ), prodejni:Math.round(c.prodejni), oneTime:Math.round(c.oneTimeTotal)};
   });
+  try{ auditAction('nabidka'+(via?'-'+via:''), (STATE.client&&STATE.client.company||'bez klienta')+' | '+(STATE.product||'')+' | '+items.map(i=>i.id).join(', ')); }catch(e){}
   // dedup: pokud poslední záznam je shodný (stejný klient+stroje+forma), neukládat znovu
   const sig=JSON.stringify({c:STATE.client.company,m:STATE.mode,p:STATE.product,ids:items.map(i=>i.id),t:termLabel(),mz:GP.marze});
   const last=History.all()[0];
@@ -4932,6 +4939,7 @@ function toggleOfferSilent(id){
 }
 /* Tisk nabídky do PDF — přidá body.print-offer (spustí tiskové CSS jen pro #offerDoc), po tisku uklidí. */
 function printOfferPDF(){
+  try{ auditAction('export-pdf', (STATE.client&&STATE.client.company||'')+' | '+(STATE.selectedForOffer||[]).join(', ')); }catch(e){}
   document.body.classList.add('print-offer');
   var cleanup=function(){ document.body.classList.remove('print-offer'); window.removeEventListener('afterprint',cleanup); };
   window.addEventListener('afterprint',cleanup);
@@ -4991,8 +4999,11 @@ function buildTechSheetHTML(p){
 }
 function openTechSheet(id){
   const p=findProduct(id); if(!p) return;
+  try{ auditAction('technicky-list', id); }catch(e){}
   document.getElementById('techSheet').innerHTML=buildTechSheetHTML(p);
-  const m=document.getElementById('techModal'); m.classList.add('open'); m.setAttribute('aria-hidden','false');
+  const m=document.getElementById('techModal');
+  if(m.parentNode!==document.body) document.body.appendChild(m); // ven z .wrap, ať se při tisku nevykreslí prázdné
+  m.classList.add('open'); m.setAttribute('aria-hidden','false');
   document.body.style.overflow='hidden';
 }
 function closeTechSheet(){
@@ -7397,21 +7408,49 @@ function bindAuthModal(){
   });
 }
 
+/* Admin: plovoucí tlačítko Audit + modal s přehledem činnosti */
+function ensureAdminAuditBtn(){
+  var u=Auth.user(); var isAdmin=!!(u&&u.admin);
+  var b=document.getElementById('adminAuditBtn');
+  if(isAdmin && !b){
+    b=document.createElement('button'); b.id='adminAuditBtn'; b.type='button'; b.textContent='🛡️ Audit';
+    b.style.cssText='position:fixed;right:16px;bottom:16px;z-index:9998;background:#0e8a43;color:#fff;border:none;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.2)';
+    b.onclick=openAuditLog; document.body.appendChild(b);
+  } else if(!isAdmin && b){ b.remove(); }
+}
+async function openAuditLog(){
+  var host=document.getElementById('auditModal');
+  if(!host){
+    host=document.createElement('div'); host.id='auditModal';
+    host.style.cssText='position:fixed;inset:0;z-index:10000;background:rgba(15,21,18,.55);display:block;overflow:auto;padding:24px;font-family:var(--sans,sans-serif)';
+    host.innerHTML='<div style="max-width:960px;margin:0 auto;background:#fff;border-radius:12px;padding:20px 22px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h2 style="margin:0;font-size:20px">🛡️ Audit log</h2><button type="button" onclick="var m=document.getElementById(\'auditModal\');if(m)m.remove();" style="border:none;background:#eee;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:800">Zavřít ×</button></div><div id="auditBody" style="font-size:12.5px;color:#333">Načítám…</div></div>';
+    document.body.appendChild(host);
+  }
+  try{
+    var d=await Auth._req('/api/audit?limit=800','GET',null); var rows=d.rows||[];
+    var body='<div style="color:#5b6560;margin-bottom:8px">Celkem záznamů: '+(d.total||rows.length)+' · zobrazeno posledních '+rows.length+'</div>'
+      +'<table style="width:100%;border-collapse:collapse"><thead><tr style="text-align:left;color:#5b6560;font-size:11px"><th style="padding:6px 8px">Čas</th><th style="padding:6px 8px">Uživatel</th><th style="padding:6px 8px">Akce</th><th style="padding:6px 8px">Detail</th><th style="padding:6px 8px">IP</th></tr></thead><tbody>'
+      +rows.map(function(r){return '<tr style="border-top:1px solid #eef1ec"><td style="padding:6px 8px;white-space:nowrap">'+new Date(r.ts).toLocaleString('cs-CZ')+'</td><td style="padding:6px 8px">'+_ibEsc(r.email)+'</td><td style="padding:6px 8px;font-weight:700">'+_ibEsc(r.action)+'</td><td style="padding:6px 8px;color:#5b6560">'+_ibEsc(r.detail)+'</td><td style="padding:6px 8px;color:#9aa39d">'+_ibEsc(r.ip)+'</td></tr>';}).join('')
+      +'</tbody></table>';
+    document.getElementById('auditBody').innerHTML = rows.length?body:'<div style="color:#5b6560">Zatím žádné záznamy.</div>';
+  }catch(e){ var ab=document.getElementById('auditBody'); if(ab) ab.innerHTML='<div style="color:#a11">Chyba: '+((e&&e.message)||e)+'</div>'; }
+}
 function refreshAuthUI(){
   const lbl=document.getElementById('authLabel');
   if(lbl) lbl.textContent = Auth.isLoggedIn() ? (Auth.user().name||Auth.user().email).split(' ')[0] : 'Účet';
   const btn=document.getElementById('authBtn');
   if(btn) btn.classList.toggle('auth-on', Auth.isLoggedIn());
+  try{ ensureAdminAuditBtn(); }catch(e){}
 }
 
 /* ---------- START ---------- */
 // Inicializační načtení historie ze serveru pokud jsme přihlášeni
-if(Auth.isLoggedIn()){
-  Auth.refreshMe().then(u=>{
-    if(!u){ Auth.clear(); refreshAuthUI(); }
-    else { History.loadFromServer().then(()=>{ updateCounts(); if(STATE.activeTab==='history')renderHistory(); }); }
-  });
-}
+// Vždy ověř session (cookie ze SSO i localStorage token). Když je platná, načti sdílenou historii + admin UI.
+Auth.refreshMe().then(u=>{
+  if(u){ History.loadFromServer().then(()=>{ updateCounts(); if(STATE.activeTab==='history')renderHistory(); }); }
+  else { Auth.clear(); }
+  refreshAuthUI();
+});
 render();
 setTimeout(refreshAuthUI, 50);
 
@@ -7451,6 +7490,7 @@ setTimeout(refreshAuthUI, 50);
 var _inboxNewCount = 0;
 function _ibEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function applyLeadToState(lead){
+  try{ auditAction('poptavka-otevrena', (lead && (lead.company||lead.name||lead.id))||''); }catch(e){}
   var p = lead.params || {};
   STATE.product = (lead.page==='bramidan') ? 'bramidan' : 'zentex';
   if(['rent','sale','lease'].indexOf(p.mode)>=0) STATE.mode=p.mode;

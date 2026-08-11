@@ -97,14 +97,54 @@ function verifyPassword(password, salt, expectedHash) {
   } catch(e) { return false; }
 }
 function generateToken() { return crypto.randomBytes(32).toString('hex'); }
-function getUserFromAuth(req, db) {
+/* ---------- Session token: cookie NEBO Authorization: Bearer ---------- */
+function parseCookies(req) {
+  const h = req.headers.cookie || ''; const out = {};
+  h.split(';').forEach(pair => { const i = pair.indexOf('='); if (i > 0) { try { out[pair.slice(0, i).trim()] = decodeURIComponent(pair.slice(i + 1).trim()); } catch (_) {} } });
+  return out;
+}
+function sessionTokenFromReq(req) {
   const auth = req.headers.authorization;
-  if (!auth || !auth.startsWith('Bearer ')) return null;
-  const token = auth.slice(7);
+  if (auth && auth.startsWith('Bearer ')) return auth.slice(7);
+  return parseCookies(req).sm_sess || null;
+}
+function getUserFromAuth(req, db) {
+  const token = sessionTokenFromReq(req);
+  if (!token) return null;
   const session = db.sessions.find(s => s.token === token);
   if (!session) return null;
   if (new Date(session.expiresAt) < new Date()) return null;
-  return db.users.find(u => u.id === session.userId);
+  return db.users.find(u => u.id === session.userId) || null;
+}
+const COOKIE_MAX_AGE = 30 * 24 * 3600; // 30 dní
+// SameSite=None; Secure + Partitioned — appka běží v cross-site iframu intranetu, jinak by cookie neprošla.
+// Partitioned (CHIPS) je forward-compat pro Chrome; prohlížeče bez podpory ho ignorují.
+function sessionCookie(token) { return 'sm_sess=' + token + '; HttpOnly; Secure; SameSite=None; Partitioned; Path=/; Max-Age=' + COOKIE_MAX_AGE; }
+function clearSessionCookie() { return 'sm_sess=; HttpOnly; Secure; SameSite=None; Partitioned; Path=/; Max-Age=0'; }
+/* ---------- Přístup: kdo se smí přihlásit + vynucení zámku ---------- */
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'david.sury@elkoplast.cz,surydavid01@gmail.com')
+  .toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+function isAdminEmail(e) { return ADMIN_EMAILS.includes((e || '').toLowerCase()); }
+const AUTH_ENFORCE = (process.env.AUTH_ENFORCE || '1') !== '0'; // '0' = nouzové vypnutí zámku přes Railway
+/* ---------- Audit log (kdo/kdy/co/IP) ---------- */
+const AUDIT_FILE = path.join(DATA_DIR, 'audit.jsonl');
+function clientIp(req) { return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || (req.socket && req.socket.remoteAddress) || ''; }
+function auditLog(req, email, action, detail) {
+  try {
+    const line = JSON.stringify({ ts: new Date().toISOString(), email: email || '?', action: action || '', detail: (detail == null ? '' : String(detail)).slice(0, 300), ip: clientIp(req) }) + '\n';
+    fs.appendFile(AUDIT_FILE, line, () => {});
+  } catch (_) {}
+}
+/* Vytvoří session pro daný e-mail (SSO / bootstrap) — vrací token. */
+async function createSessionForEmail(email, name) {
+  return withDB(async (db) => {
+    let user = db.users.find(u => u.email === email);
+    if (!user) { user = { id: 'u_' + crypto.randomBytes(8).toString('hex'), email, name: name || email.split('@')[0], sso: true, createdAt: new Date().toISOString() }; db.users.push(user); }
+    const token = generateToken();
+    db.sessions.push({ token, userId: user.id, expiresAt: new Date(Date.now() + COOKIE_MAX_AGE * 1000).toISOString() });
+    db.sessions = db.sessions.filter(s => new Date(s.expiresAt) > new Date());
+    return token;
+  });
 }
 
 /* ---------- HTTP utility ---------- */
@@ -159,18 +199,26 @@ async function handleRegister(req, res) {
     if (!isValidEmail(email)) return sendJSON(res, 400, { error: 'Neplatný formát e-mailu' });
     if (password.length < 6) return sendJSON(res, 400, { error: 'Heslo musí mít alespoň 6 znaků' });
     const result = await withDB(async (db) => {
-      if (db.users.find(u => u.email === email)) return { status: 409, body: { error: 'Účet s tímto e-mailem už existuje' } };
+      // Registrace je UZAVŘENÁ: povolena jen pro admin e-maily (bootstrap) nebo úplně první účet.
+      if (db.users.length > 0 && !isAdminEmail(email)) {
+        return { status: 403, body: { error: 'Registrace je uzavřená. Přihlaste se přes intranet (SSO), nebo požádejte správce o založení účtu.' } };
+      }
+      const existing = db.users.find(u => u.email === email);
       const { salt, hash } = hashPassword(password);
-      const user = {
-        id: 'u_' + crypto.randomBytes(8).toString('hex'),
-        email, name: name || email.split('@')[0],
-        passwordHash: hash, salt, createdAt: new Date().toISOString()
-      };
-      db.users.push(user);
+      let user;
+      if (existing) {
+        // Admin e-mail bez hesla (např. dřív jen přes SSO) si smí heslo nastavit
+        if (!isAdminEmail(email)) return { status: 409, body: { error: 'Účet s tímto e-mailem už existuje' } };
+        existing.passwordHash = hash; existing.salt = salt; user = existing;
+      } else {
+        user = { id: 'u_' + crypto.randomBytes(8).toString('hex'), email, name: name || email.split('@')[0], passwordHash: hash, salt, createdAt: new Date().toISOString() };
+        db.users.push(user);
+      }
       const token = generateToken();
-      db.sessions.push({ token, userId: user.id, expiresAt: new Date(Date.now() + 30*24*3600*1000).toISOString() });
+      db.sessions.push({ token, userId: user.id, expiresAt: new Date(Date.now() + COOKIE_MAX_AGE * 1000).toISOString() });
       return { status: 201, body: { token, user: { id: user.id, email: user.email, name: user.name } } };
     });
+    if (result.body && result.body.token) { res.setHeader('Set-Cookie', sessionCookie(result.body.token)); auditLog(req, email, 'register'); }
     sendJSON(res, result.status, result.body);
   } catch (e) { sendJSON(res, 400, { error: e.message }); }
 }
@@ -186,20 +234,27 @@ async function handleLogin(req, res) {
       if (!user) return { status: 401, body: { error: 'Nesprávné přihlašovací údaje' } };
       if (!verifyPassword(password, user.salt, user.passwordHash)) return { status: 401, body: { error: 'Nesprávné přihlašovací údaje' } };
       const token = generateToken();
-      db.sessions.push({ token, userId: user.id, expiresAt: new Date(Date.now() + 30*24*3600*1000).toISOString() });
+      db.sessions.push({ token, userId: user.id, expiresAt: new Date(Date.now() + COOKIE_MAX_AGE * 1000).toISOString() });
       db.sessions = db.sessions.filter(s => new Date(s.expiresAt) > new Date());
       return { status: 200, body: { token, user: { id: user.id, email: user.email, name: user.name } } };
     });
+    if (result.body && result.body.token) { res.setHeader('Set-Cookie', sessionCookie(result.body.token)); auditLog(req, email, 'login'); }
+    else { auditLog(req, email, 'login-failed'); }
     sendJSON(res, result.status, result.body);
   } catch (e) { sendJSON(res, 400, { error: e.message }); }
 }
 
 async function handleLogout(req, res) {
-  const auth = req.headers.authorization;
-  if (auth && auth.startsWith('Bearer ')) {
-    const token = auth.slice(7);
-    await withDB(async (db) => { db.sessions = db.sessions.filter(s => s.token !== token); });
+  const token = sessionTokenFromReq(req);
+  let email = '?';
+  if (token) {
+    await withDB(async (db) => {
+      const s = db.sessions.find(x => x.token === token); if (s) { const u = db.users.find(u => u.id === s.userId); if (u) email = u.email; }
+      db.sessions = db.sessions.filter(s => s.token !== token);
+    });
   }
+  auditLog(req, email, 'logout');
+  res.setHeader('Set-Cookie', clearSessionCookie());
   sendJSON(res, 200, { ok: true });
 }
 
@@ -207,7 +262,7 @@ async function handleMe(req, res) {
   const db = readDB();
   const user = getUserFromAuth(req, db);
   if (!user) return sendJSON(res, 401, { error: 'Neautorizováno' });
-  sendJSON(res, 200, { user: { id: user.id, email: user.email, name: user.name } });
+  sendJSON(res, 200, { user: { id: user.id, email: user.email, name: user.name, admin: isAdminEmail(user.email) } });
 }
 
 // SSO výměna: token z intranetu → session nabídkové aplikace (auto-vytvoření účtu dle e-mailu)
@@ -231,8 +286,30 @@ async function handleSso(req, res) {
       db.sessions = db.sessions.filter(s => new Date(s.expiresAt) > new Date());
       return { token, user: { id: user.id, email: user.email, name: user.name } };
     });
+    res.setHeader('Set-Cookie', sessionCookie(result.token));
+    auditLog(req, email, 'sso-login');
     sendJSON(res, 200, result);
   } catch (e) { sendJSON(res, 400, { error: e.message }); }
+}
+/* Audit: klientem hlášené akce (nabídka, PDF, technický list, ...) + admin přehled */
+async function handleAudit(req, res) {
+  const db = readDB();
+  const user = getUserFromAuth(req, db);
+  if (!user) return sendJSON(res, 401, { error: 'Neautorizováno' });
+  if (req.method === 'POST') {
+    const body = await readBody(req).catch(() => ({}));
+    auditLog(req, user.email, String(body.action || 'action').slice(0, 60), body.detail);
+    return sendJSON(res, 200, { ok: true });
+  }
+  if (req.method === 'GET') {
+    if (!isAdminEmail(user.email)) return sendJSON(res, 403, { error: 'Jen pro správce' });
+    let lines = [];
+    try { lines = fs.readFileSync(AUDIT_FILE, 'utf-8').trim().split('\n').filter(Boolean); } catch (_) {}
+    const limit = Math.min(2000, parseInt(new URL(req.url, 'http://x').searchParams.get('limit') || '500', 10) || 500);
+    const rows = lines.slice(-limit).reverse().map(l => { try { return JSON.parse(l); } catch (_) { return null; } }).filter(Boolean);
+    return sendJSON(res, 200, { rows, total: lines.length, admin: true });
+  }
+  return sendJSON(res, 405, { error: 'Metoda nepodporována' });
 }
 
 // Sdílená fronta poptávek („Nabídky k vyřízení") — příjem z klientských kalkulaček + zpracování obchodníkem
@@ -370,6 +447,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && urlPath === '/api/logout') return await handleLogout(req, res);
       if (req.method === 'GET' && urlPath === '/api/me') return await handleMe(req, res);
       if (req.method === 'POST' && urlPath === '/api/sso') return await handleSso(req, res);
+      if (urlPath === '/api/audit') return await handleAudit(req, res);
       if (urlPath.startsWith('/api/leads')) return await handleLeads(req, res, urlPath);
       if (urlPath.startsWith('/api/items')) return await handleItems(req, res, urlPath);
       sendJSON(res, 404, { error: 'Endpoint nenalezen' });
@@ -382,6 +460,40 @@ const server = http.createServer(async (req, res) => {
 
   let staticPath = decodeURIComponent(urlPath);
   if (staticPath === '/' || staticPath === '') staticPath = '/index.html';
+
+  /* ---------- ZÁMEK PŘÍSTUPU: bez platného přihlášení se appka (ani ceny) neservíruje ---------- */
+  if (AUTH_ENFORCE) {
+    const db = readDB();
+    let authUser = getUserFromAuth(req, db);
+    // SSO z intranetu: ?sso=<token> na jakékoli stránce → ověřit, založit session (cookie), přesměrovat bez parametru
+    if (!authUser) {
+      const ssoTok = urlObj.searchParams.get('sso');
+      if (ssoTok) {
+        const p = ssoVerify(ssoTok);
+        if (p && (!p.exp || p.exp > Date.now()) && isValidEmail(String(p.email || '').toLowerCase())) {
+          const email = String(p.email).toLowerCase();
+          const token = await createSessionForEmail(email, (p.name || '').toString());
+          auditLog(req, email, 'sso-login');
+          res.writeHead(302, { 'Set-Cookie': sessionCookie(token), 'Location': urlPath });
+          return res.end();
+        }
+      }
+    }
+    // Povolené i bez přihlášení: login stránka, health, favicon
+    const publicPaths = staticPath === '/login.html' || staticPath === '/favicon.ico' || staticPath === '/robots.txt';
+    if (!authUser && !publicPaths) {
+      const accept = String(req.headers.accept || '');
+      if (staticPath === '/index.html' || staticPath.endsWith('.html') || accept.includes('text/html')) {
+        return fs.readFile(path.join(PUBLIC_DIR, 'login.html'), (e, d) => {
+          res.writeHead(200, { 'Content-Type': MIME['.html'], 'Cache-Control': 'no-store' });
+          res.end(e ? '<!doctype html><meta charset=utf-8><h1>Přihlášení vyžadováno</h1><p>Otevřete Kalkulátor lisů přes intranet.</p>' : d);
+        });
+      }
+      res.writeHead(401, { 'Content-Type': 'text/plain; charset=utf-8' });
+      return res.end('Neautorizováno — přihlaste se');
+    }
+  }
+
   const filePath = path.join(PUBLIC_DIR, path.normalize(staticPath).replace(/^(\.\.[/\\])+/, ''));
   if (!filePath.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end('Forbidden'); }
   fs.readFile(filePath, (err, data) => {
