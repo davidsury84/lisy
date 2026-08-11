@@ -381,6 +381,10 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .ts-tags span{display:inline-block;background:#eef4ee;color:#1c5b34;border:1px solid #d7e6da;border-radius:6px;padding:3px 9px;font-size:11.5px;margin:0 5px 5px 0;font-weight:600}
 .ts-note{font-size:11.5px;color:#7a837e;background:#fbfcfa;border:1px dashed #e0e4dc;border-radius:8px;padding:9px 11px;margin-top:8px;line-height:1.5}
 .ts-foot{margin-top:16px;border-top:1px solid #e6e9e2;padding-top:10px;font-size:10.5px;color:#8a938e;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+/* Technické listy jako příloha nabídky — bez duplicitní brand hlavičky a patičky (má je nabídka) */
+.offer-tech{font-family:var(--sans,'IBM Plex Sans',sans-serif);color:#0f1512}
+.offer-tech .ts-head .ts-brand, .offer-tech .ts-foot{display:none}
+.offer-tech .ts-page{box-shadow:none;border:1px solid #ece9e0;border-radius:12px;padding:18px 20px}
 .spec-mini .sm{font-size:11px;color:var(--muted);font-weight:600}
 .spec-mini .sm b{display:block;font-size:13.5px;color:var(--ink);font-weight:700;margin-top:1px;font-family:var(--disp)}
 
@@ -3393,10 +3397,12 @@ function saveToHistory(via){
     return {id:p.id, mesic:Math.round(c.celkemMesicVcServ), prodejni:Math.round(c.prodejni), oneTime:Math.round(c.oneTimeTotal)};
   });
   try{ auditAction('nabidka'+(via?'-'+via:''), (STATE.client&&STATE.client.company||'bez klienta')+' | '+(STATE.product||'')+' | '+items.map(i=>i.id).join(', ')); }catch(e){}
-  // dedup: pokud poslední záznam je shodný (stejný klient+stroje+forma), neukládat znovu
+  // Každý EXPORT (PDF / e-mail) se ukládá vždy (na přání — evidence odeslaných nabídek).
+  // Ostatní spouštěče (ruční, Excel) dedupují shodný poslední záznam, ať se historie nezaplní.
+  const forceSave = (via==='PDF' || via==='E-mail');
   const sig=JSON.stringify({c:STATE.client.company,m:STATE.mode,p:STATE.product,ids:items.map(i=>i.id),t:termLabel(),mz:GP.marze});
   const last=History.all()[0];
-  if(last && last.sig===sig){ return last; }
+  if(!forceSave && last && last.sig===sig){ return last; }
   const entry={
     sig, via, date:new Date().toLocaleString('cs-CZ'),
     product:STATE.product, productLabel:isZentex()?'Zentex':'Bramidan',
@@ -5262,6 +5268,14 @@ function offerDocHTML(sel){
       <div>ELKOPLAST CZ s.r.o. · Zlínský kraj · www.elkoplast.cz</div>
       <div style="text-align:right">${prof?`<b style="color:#1a1c1e;font-size:12.5px">${esc(prof.name)}</b><br>${prof.email?esc(prof.email):''}${prof.email&&prof.phone?' · ':''}${prof.phone?esc(prof.phone):''}`:'Vypracoval/a: obchodní oddělení'}</div>
     </div>
+    ${(function(){
+      var zs = sel.filter(function(p){return prodIsZentex(p);});
+      if(!zs.length) return '';
+      return '<div class="offer-tech" style="page-break-before:always">'
+        + '<div style="font-family:Sora,sans-serif;font-size:17px;font-weight:800;color:#1a1c1e;margin:6px 0 16px;padding-bottom:8px;border-bottom:2px solid #ffce1f">Technické listy nabízených strojů</div>'
+        + zs.map(function(p,i){ return '<div style="'+(i>0?'page-break-before:always;':'')+'page-break-inside:avoid;margin-bottom:20px">'+buildTechSheetHTML(p)+'</div>'; }).join('')
+        + '</div>';
+    })()}
   </div>`;
 }
 
