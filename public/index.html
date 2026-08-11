@@ -1284,6 +1284,34 @@ function zentexDims(p){
   return { w:d.w, h:d.h, len:L };
 }
 function zentexHasDrawing(p){ return zentexTypeKey(p)!=='Z-SHA'; }
+/* Použití (na co daný typ je) — pro výběr „Typ podle použití" v konfiguraci. */
+const ZENTEX_USECASES = [
+  {key:'auto',     label:'⭐ Automatické doporučení (top 12)', hint:'Nejlépe sedící standardní modely podle tonáže a materiálu.'},
+  {key:'all',      label:'Všechny typy podle použití',        hint:'Všechny vhodně dimenzované modely napříč typy — i speciální.'},
+  {key:'standard', label:'Standardní suchý odpad (SHA)',      hint:'Lepenka, papír, fólie, plast, směsný komunál.'},
+  {key:'mr',       label:'Objemný lehký materiál (MR / HMR)', hint:'Zvýšená / pohyblivá střecha — objemné lehké frakce.'},
+  {key:'wet',      label:'Mokrý / bio odpad (SW)',            hint:'Těsná samočisticí konstrukce, 100% těsnost.'},
+  {key:'cool',     label:'Chlazený mokrý / bio (COOL)',       hint:'Izotermní + chlazení proti zápachu a rozkladu při skladování.'},
+  {key:'wood',     label:'Dřevo / europalety (LW)',           hint:'Komora z otěruvzdorné oceli Hardox 450®.'},
+  {key:'expand',   label:'Expandující materiál (SO)',         hint:'Otevřená boční strana — EPS, napěněné plasty, objemné fólie.'},
+  {key:'split',    label:'Dvě frakce — dělený (DB SO2)',      hint:'Dva druhy odpadu v jednom stroji (dělení 50/50, 60/40, 70/30).'},
+  {key:'pto',      label:'Bez el. přípojky (PTO)',            hint:'Hydraulika poháněná vývodovým hřídelem vozidla — nasazení v terénu.'},
+  {key:'transfer', label:'Překladiště — lžíce (SPOON)',       hint:'Plnění z kontejneru bez rampy, centrální sběrné místo.'},
+  {key:'fastfood', label:'Fast-food / gastro (R-FS)',         hint:'Uzavřené plnění proti zápachu a hlodavcům, tišší chod.'}
+];
+function zentexUseCase(p){
+  const id=(p.id||'').toUpperCase(), hop=(p.hopper||'').toUpperCase();
+  if(/COOL/.test(id))            return 'cool';
+  if(/^SW/.test(id))             return 'wet';       // SW/SWR/SWZ/SWZR (mokrý)
+  if(/PTO/.test(id))             return 'pto';
+  if(/SPOON/.test(id))           return 'transfer';
+  if(/DB SO2/.test(id))          return 'split';
+  if(/\bSO1?\b/.test(id)||hop==='SO'||hop==='SO1') return 'expand';
+  if(/^LW/.test(id))             return 'wood';
+  if(/^R-FS/.test(id))           return 'fastfood';
+  if(hop.includes('MR'))         return 'mr';        // MR i HMR
+  return 'standard';                                  // SHA standardní
+}
 /* Lisovací síla: 300 kN základ + případný příplatkový upgrade (dle p.force z ceníku). */
 function zentexForceLabel(p){
   const base=300, max=p.force||300;
@@ -2020,8 +2048,8 @@ function compactorRating(p, ctx){
   const cenaNorm = Math.max(0, Math.min(1, (maxNakup - p.nakup) / (maxNakup - minNakup)));
   s.cena = Math.round(10 * cenaNorm);
 
-  // Speciály/mokré upozadit jen v běžném doporučení; v režimu „všechny typy" řadit podle skutečné vhodnosti.
-  const showAll = !!STATE.zAllTypes;
+  // Speciály/mokré upozadit jen v automatickém doporučení; při výběru dle použití řadit podle skutečné vhodnosti.
+  const showAll = (STATE.zUseCase && STATE.zUseCase !== 'auto');
   const specialPenalty = (p.special && !showAll) ? 6 : 0;
   const sp0 = zentexSpecs(p);
   const wetPenalty = (sp0 && sp0.wet && !showAll) ? 12 : 0;
@@ -2041,17 +2069,20 @@ function compactorRating(p, ctx){
 /* Doporučí TOP N Zentex modelů podle skóre, filtruje primárně podle nosiče. */
 function recommendedZentexScored(topN){
   const ctx = buildZentexCtx();
-  const all = !!STATE.zAllTypes;
-  // Default: jen pevně naceněné standardní modely (strop topN). „Všechny typy": vč. speciálních/na vyžádání, bez stropu.
-  const filtered = COMPACTORS.filter(p => p.carrier === ctx.carrierType && (all || !p.priceOnRequest));
+  const uc = STATE.zUseCase || 'auto';
+  const isAuto = uc === 'auto';
+  // auto = jen pevně naceněné standardní modely (strop topN). Jinak filtr dle použití (i speciální), bez stropu.
+  const filtered = COMPACTORS.filter(p =>
+       p.carrier === ctx.carrierType
+    && (isAuto ? !p.priceOnRequest : true)
+    && (isAuto || uc === 'all' ? true : zentexUseCase(p) === uc)
+  );
   let scored = filtered.map(p => ({ p, ...compactorRating(p, ctx) }));
   scored.sort((a, b) => b.score.total - a.score.total);
-  if(all){
-    // „Všechny typy": jen vhodně DIMENZOVANÉ (velikost sedí na tonáž) — napříč všemi typy, bez stropu.
-    const fit = scored.filter(s => s.score.velikost > 0);
-    return (fit.length ? fit : scored).slice(0, 40);
-  }
-  return scored.slice(0, topN || 5);
+  if(isAuto) return scored.slice(0, topN || 5);
+  // Vhodně DIMENZOVANÉ (velikost sedí na tonáž), napříč vybraným použitím
+  const fit = scored.filter(s => s.score.velikost > 0);
+  return (fit.length ? fit : scored).slice(0, 40);
 }
 
 
@@ -2354,7 +2385,7 @@ const STATE = {
   materialType: "lepenkaPlast",   // klíč z MATERIAL_TYPES
   svozyPerMonth: 1,               // cílový počet svozů za měsíc (klient chce co nejméně)
   carrierType: "Hákový (R)",      // primární filtr vozového parku (Hákový/Řetězový)
-  zAllTypes: false,               // doporučení: zobrazit VŠECHNY vhodné typy vč. speciálních (LW, PTO, DB SO2, COOL, SO) bez stropu
+  zUseCase: 'auto',               // doporučení dle použití: auto(top12) | all | standard | mr | wet | cool | wood | expand | split | pto | transfer | fastfood
   termMode: "years", years: 3, months: 6, serviceMode: "kompl",  client: { name:"", company:"", waste:"Lepenka + měkký plast", contact:"", date:new Date().toLocaleDateString('cs-CZ'), ico:"", dic:"", sidlo:"", fakturEmail:"", mistoPlneni:"", datumPocatku:"", vypovedniLhuta:"2 měsíce", serialNumbers:{}, yearsMade:{}, trialPeriod:false, zaruka:"24 měsíců" },
   selectedForOffer: [], activeTab: "compare"
 };
@@ -2503,10 +2534,13 @@ function heroHTML(){
         <div class="seg" id="selSeg" style="margin-bottom:14px">${selBtns}</div>
         <div id="selCtrl">${selectControlHTML()}</div>
         ${zx && STATE.selectMode==='tons' ? `
-        <label class="z-alltypes" style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:11px 13px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2,#f4f2ea);font-size:12.5px;color:var(--ink2);cursor:pointer">
-          <input type="checkbox" id="zAllTypes" ${STATE.zAllTypes?'checked':''} style="margin-top:2px">
-          <span><b>Nabídnout všechny typy podle použití</b> — přidá i speciální modely: <b>LW</b> (dřevo), <b>PTO</b> (bez el. přípojky), <b>DB&nbsp;SO2</b> (dělený), <b>COOL</b> (chlazený mokrý), <b>SO</b> (expandující). Zobrazí se všechny vhodné bez stropu; ceny speciálů jsou orientační/na vyžádání.</span>
-        </label>` : ''}
+        <div style="margin-top:12px">
+          <label class="tinp-lbl" style="font-size:12px;font-weight:700">Typ podle použití <span class="rate-help" title="Vyberte podle druhu odpadu / provozu. U speciálů jsou ceny orientační / na vyžádání.">${I.info}</span></label>
+          <select class="tinp" id="zUseCase" style="margin-top:6px">
+            ${ZENTEX_USECASES.map(u=>`<option value="${u.key}" ${(STATE.zUseCase||'auto')===u.key?'selected':''}>${u.label}</option>`).join('')}
+          </select>
+          <p class="sel-hint" id="zUseCaseHint" style="margin-top:7px">${(ZENTEX_USECASES.find(u=>u.key===(STATE.zUseCase||'auto'))||{}).hint||''}</p>
+        </div>` : ''}
       </div>
 
       ${sale ? `
@@ -2712,8 +2746,13 @@ function bindHero(){
     bindSelectControl();
     refreshHeroDynamic(); refreshActivePanel();
   });
-  const zAll=document.getElementById('zAllTypes');
-  if(zAll) zAll.onchange=()=>{ STATE.zAllTypes=zAll.checked; refreshHeroDynamic(); refreshActivePanel(); };
+  const zUse=document.getElementById('zUseCase');
+  if(zUse) zUse.onchange=()=>{
+    STATE.zUseCase=zUse.value;
+    const hint=document.getElementById('zUseCaseHint');
+    if(hint){ const u=ZENTEX_USECASES.find(x=>x.key===zUse.value); hint.textContent=u?u.hint:''; }
+    refreshHeroDynamic(); refreshActivePanel();
+  };
   bindSelectControl();
   // marže (jen v režimu prodej)
   const mr=document.getElementById('marzeRange');
