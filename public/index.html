@@ -5166,16 +5166,43 @@ async function copyOfferForEmail(btn){
     }));
     const html='<div style="font-family:Arial,Helvetica,sans-serif;color:#1a1c1e">'+clone.innerHTML+'</div>';
     let plain=''; try{ plain=offerSummaryText(); }catch(e){}
-    await navigator.clipboard.write([new ClipboardItem({
-      'text/html': new Blob([html], {type:'text/html'}),
-      'text/plain': new Blob([plain], {type:'text/plain'})
-    })]);
+    let done=false;
+    // 1) Moderní Clipboard API (může být blokované v iframu bez allow="clipboard-write")
+    try{
+      if(navigator.clipboard && window.ClipboardItem){
+        await navigator.clipboard.write([new ClipboardItem({
+          'text/html': new Blob([html], {type:'text/html'}),
+          'text/plain': new Blob([plain], {type:'text/plain'})
+        })]);
+        done=true;
+      }
+    }catch(e){ /* fallback níže */ }
+    // 2) Fallback přes výběr + execCommand — funguje i v cross-origin iframu
+    if(!done) done=copyRichViaExec(html);
+    if(!done) throw new Error('Prohlížeč kopírování nepovolil');
     try{ saveToHistory('Kopie'); }catch(e){}
     try{ auditAction('kopie-emailu', (STATE.client&&STATE.client.company||'')); }catch(e){}
     toast('Nabídka zkopírována ✓ — v Gmailu vložte přes Ctrl+V (Cmd+V).');
   }catch(e){
     toast('Kopírování se nezdařilo: '+((e&&e.message)||e)+'. Zkuste PDF přílohu.');
   }finally{ if(btn){ btn.textContent=orig; btn.disabled=false; } }
+}
+/* Zkopíruje rich HTML přes dočasný výběr + execCommand('copy'). Funguje i tam, kde Clipboard API blokuje iframe. */
+function copyRichViaExec(html){
+  const holder=document.createElement('div');
+  holder.setAttribute('contenteditable','true');
+  holder.style.cssText='position:fixed;left:-99999px;top:0;width:800px;opacity:0;white-space:normal;pointer-events:none';
+  holder.innerHTML=html;
+  document.body.appendChild(holder);
+  let ok=false;
+  try{
+    const sel=window.getSelection(); const range=document.createRange();
+    range.selectNodeContents(holder); sel.removeAllRanges(); sel.addRange(range);
+    ok=document.execCommand('copy');
+    sel.removeAllRanges();
+  }catch(e){ ok=false; }
+  document.body.removeChild(holder);
+  return ok;
 }
 function offerDocHTML(sel){
   const cl=STATE.client;
@@ -5187,6 +5214,8 @@ function offerDocHTML(sel){
   const zx=isZentex();
   const periodHdr = sale ? 'Jednorázově' : lease ? `Celkem za ${GP.leaseN} měs vč. FV` : (isIndefinite()?'Ročně (doba neurčitá)':'Celkem za '+termLabel());
   const col5Hdr = sale ? 'Servis / rok' : lease ? 'Měsíční leasing vč. servisu' : 'Pronájem/měs vč. servisu';
+  // U pronájmu na dobu určitou NEuvádět sloupec „Celkem za X roky" (na přání) — jen prodej (jednorázově), leasing a doba neurčitá (ročně).
+  const showPeriod = sale || lease || isIndefinite();
   // souhrn pro výpočet DPH řádků
   let sumCol5=0, sumCol6=0, sumProdej=0;
   const rows=sel.map(p=>{
@@ -5203,7 +5232,7 @@ function offerDocHTML(sel){
       <td>${spec}</td>
       ${sale?`<td style="text-align:right">${num(c.prodejni)} Kč</td>`:''}
       <td style="text-align:right;font-weight:${sale?'400':'700'}">${col5}</td>
-      <td style="text-align:right;font-weight:${sale?'400':'400'}">${col6}</td>
+      ${showPeriod?`<td style="text-align:right;font-weight:400">${col6}</td>`:''}
     </tr>`;
   }).join('');
   // Součtové řádky s DPH
@@ -5214,19 +5243,19 @@ function offerDocHTML(sel){
       <td colspan="${colspan}" style="padding:9px 12px;text-align:right;font-weight:800;color:#1a1c1e">CELKEM bez DPH:</td>
       ${sale?`<td style="padding:9px 12px;text-align:right;font-weight:800">${num(sumProdej)} Kč</td>`:''}
       <td style="padding:9px 12px;text-align:right;font-weight:800">${num(sumCol5)} Kč</td>
-      <td style="padding:9px 12px;text-align:right;font-weight:800">${num(sumCol6)} Kč</td>
+      ${showPeriod?`<td style="padding:9px 12px;text-align:right;font-weight:800">${num(sumCol6)} Kč</td>`:''}
     </tr>
     <tr style="background:#faf8f2;color:#666">
       <td colspan="${colspan}" style="padding:6px 12px;text-align:right;font-size:11px">DPH ${pct(dphRate)}:</td>
       ${sale?`<td style="padding:6px 12px;text-align:right;font-size:11px">${num(Math.round(sumProdej*dphRate))} Kč</td>`:''}
       <td style="padding:6px 12px;text-align:right;font-size:11px">${num(Math.round(sumCol5*dphRate))} Kč</td>
-      <td style="padding:6px 12px;text-align:right;font-size:11px">${num(Math.round(sumCol6*dphRate))} Kč</td>
+      ${showPeriod?`<td style="padding:6px 12px;text-align:right;font-size:11px">${num(Math.round(sumCol6*dphRate))} Kč</td>`:''}
     </tr>
     <tr style="background:#ffce1f;color:#1a1c1e;font-weight:800">
       <td colspan="${colspan}" style="padding:10px 12px;text-align:right;font-size:13px">CELKEM s DPH:</td>
       ${sale?`<td style="padding:10px 12px;text-align:right;font-weight:800">${num(Math.round(sumProdej*(1+dphRate)))} Kč</td>`:''}
       <td style="padding:10px 12px;text-align:right;font-weight:800">${num(Math.round(sumCol5*(1+dphRate)))} Kč</td>
-      <td style="padding:10px 12px;text-align:right;font-weight:800">${num(Math.round(sumCol6*(1+dphRate)))} Kč</td>
+      ${showPeriod?`<td style="padding:10px 12px;text-align:right;font-weight:800">${num(Math.round(sumCol6*(1+dphRate)))} Kč</td>`:''}
     </tr>` : '';
   // jednorázové položky (souhrn — bere první vybraný lis pro dopravu; položky jsou společné)
   const otRef = sel.length?calc(sel[0],STATE.serviceMode):null;
@@ -5366,7 +5395,7 @@ function offerDocHTML(sel){
         <th style="padding:10px 12px;text-align:left">Specifikace</th>
         ${sale?'<th style="padding:10px 12px;text-align:right">Prodejní cena<br><span style="font-size:9.5px;font-weight:600;opacity:.75">bez DPH</span></th>':''}
         <th style="padding:10px 12px;text-align:right">${col5Hdr}<br><span style="font-size:9.5px;font-weight:600;opacity:.75">bez DPH</span></th>
-        <th style="padding:10px 12px;text-align:right">${periodHdr}<br><span style="font-size:9.5px;font-weight:600;opacity:.75">bez DPH</span></th>
+        ${showPeriod?`<th style="padding:10px 12px;text-align:right">${periodHdr}<br><span style="font-size:9.5px;font-weight:600;opacity:.75">bez DPH</span></th>`:''}
       </tr></thead>
       <tbody>${rows}</tbody>
       <tfoot>${tfootRows}</tfoot>
