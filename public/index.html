@@ -350,6 +350,37 @@ select.tinp{appearance:none;-webkit-appearance:none;background-image:url("data:i
 .zopts b{color:var(--ink)}
 .zopts .zopt{margin-top:3px}
 .zopts .zopt .p{color:var(--green,#0e8a43);font-weight:800;white-space:nowrap}
+/* Tlačítko Technický list na kartě */
+.ts-btn{margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--panel2,#f4f2ea);color:var(--ink);font-weight:700;font-size:12.5px;cursor:pointer}
+.ts-btn:hover{background:#fff;border-color:var(--green,#0e8a43)}
+/* Modal technického listu */
+#techModal{position:fixed;inset:0;z-index:9999;background:rgba(15,21,18,.55);display:none;padding:24px;overflow:auto}
+#techModal.open{display:block}
+#techModalClose{position:fixed;top:18px;right:22px;z-index:10001;width:40px;height:40px;border-radius:50%;border:none;background:#fff;color:#0f1512;font-size:22px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.ts-scroll{max-width:900px;margin:0 auto}
+.ts-actions{max-width:900px;margin:0 auto 12px;display:flex;gap:10px;justify-content:flex-end}
+.ts-actions button{padding:10px 18px;border-radius:9px;border:none;font-weight:800;font-size:13px;cursor:pointer}
+.ts-print{background:var(--gold,#ffd21a);color:#1a1500}
+.ts-print:hover{filter:brightness(.96)}
+#techSheet{background:#fff;color:#0f1512;border-radius:12px;padding:26px 28px;font-family:var(--sans,'IBM Plex Sans',sans-serif);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.ts-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid var(--green,#0e8a43);padding-bottom:12px;margin-bottom:16px}
+.ts-head .ts-brand{font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--green,#0e8a43);text-transform:uppercase}
+.ts-head h2{font-size:24px;margin:3px 0 2px;font-family:var(--disp,var(--sans))}
+.ts-head .ts-sub{font-size:12.5px;color:#5b6560}
+.ts-head .ts-badge{background:var(--gold,#ffd21a);color:#1a1500;font-weight:800;font-size:12px;padding:6px 12px;border-radius:8px;white-space:nowrap}
+.ts-media{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.ts-media figure{margin:0;border:1px solid #e6e9e2;border-radius:10px;padding:8px;background:#fbfcfa}
+.ts-media img{width:100%;height:auto;object-fit:contain;display:block}
+.ts-media figcaption{font-size:10.5px;color:#7a837e;text-align:center;margin-top:5px;text-transform:uppercase;letter-spacing:.06em}
+.ts-media.solo{grid-template-columns:1fr}
+.ts-sec-title{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--green,#0e8a43);font-weight:800;margin:16px 0 7px}
+.ts-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.ts-table td{padding:6px 8px;border-bottom:1px solid #eef1ec;vertical-align:top}
+.ts-table td.k{color:#5b6560;width:42%}
+.ts-table td.v{color:#0f1512;font-weight:600}
+.ts-tags span{display:inline-block;background:#eef4ee;color:#1c5b34;border:1px solid #d7e6da;border-radius:6px;padding:3px 9px;font-size:11.5px;margin:0 5px 5px 0;font-weight:600}
+.ts-note{font-size:11.5px;color:#7a837e;background:#fbfcfa;border:1px dashed #e0e4dc;border-radius:8px;padding:9px 11px;margin-top:8px;line-height:1.5}
+.ts-foot{margin-top:16px;border-top:1px solid #e6e9e2;padding-top:10px;font-size:10.5px;color:#8a938e;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .spec-mini .sm{font-size:11px;color:var(--muted);font-weight:600}
 .spec-mini .sm b{display:block;font-size:13.5px;color:var(--ink);font-weight:700;margin-top:1px;font-family:var(--disp)}
 
@@ -506,6 +537,17 @@ footer.foot a:hover{color:var(--gold)}
   body.print-offer #panel-offer{display:block!important;margin:0}
   body.print-offer .wrap{padding:0;max-width:none}
   body.print-offer #offerDoc{box-shadow:none!important;border:none!important}
+}
+/* Tisk technického listu — aktivní jen s body.print-tech */
+@media print{
+  body.print-tech header.top, body.print-tech .tabs, body.print-tech .top-actions,
+  body.print-tech .offer-bar, body.print-tech .hero, body.print-tech .foot,
+  body.print-tech .panel, body.print-tech .wrap, body.print-tech #techModalClose,
+  body.print-tech .ts-actions{display:none!important}
+  body.print-tech #techModal{position:static!important;display:block!important;background:#fff!important;padding:0!important}
+  body.print-tech #techModal .ts-scroll{overflow:visible!important;max-height:none!important}
+  body.print-tech #techSheet{box-shadow:none!important;border:none!important;margin:0!important;width:100%!important;max-width:none!important}
+  body.print-tech .ts-page{page-break-inside:avoid}
 }
 /* Tisk smlouvy - aktivní jen když body má class print-contract */
 @media print{
@@ -1055,7 +1097,58 @@ const COMPACTORS = [
   {id:"L 22 DB SO2",code:"PP-L/22 DB SO2",carrier:"Hákový (R)",vol:22,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:18240,nakup:446900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:13, oil:80, special:true, priceOnRequest:true,
    desc:"Dělený mobilní kontejner L 22 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."},
   {id:"L 24 DB SO2",code:"PP-L/24 DB SO2",carrier:"Hákový (R)",vol:24,force:300,motor:"4,3 kW",power:"3×400V 32A",hopper:"DB SO2",eur:18360,nakup:449800,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:14, oil:80, special:true, priceOnRequest:true,
-   desc:"Dělený mobilní kontejner L 24 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."}
+   desc:"Dělený mobilní kontejner L 24 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40 nebo 70/30 (dvě frakce v jednom kontejneru). Jen verze „S” (300 kN). Cena ORIENTAČNÍ — finální dle dělení na vyžádání."},
+
+  /* ===== FÁZE 2 — DALŠÍ TYPY Z VÝROBNÍCH LISTŮ ===== */
+  /* LW — na dřevo / europalety, komora z Hardox 450 (motor 7,5 kW). Cena orientační (Hardox příplatek). */
+  {id:"LW 16 SHA",code:"PP-LW/16",carrier:"Hákový (R)",vol:16,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SHA",special:true,eur:17508,nakup:428900,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:4,maxT:10, oil:100, priceOnRequest:true,
+   desc:"Mobilní kontejner LW 16 m³ — komora z otěruvzdorné oceli Hardox 450® na DŘEVO (europalety, dřevěné/kartonové bedny) a tvrdý plast. Odolá velmi pevnému odpadu bez poškození. Cena orientační (Hardox)."},
+  {id:"LW 18 SHA",code:"PP-LW/18",carrier:"Hákový (R)",vol:18,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SHA",special:true,eur:17646,nakup:432300,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:5,maxT:11, oil:100, priceOnRequest:true,
+   desc:"Mobilní kontejner LW 18 m³ — komora Hardox 450® na dřevo (europalety, bedny) a tvrdý plast. Cena orientační (Hardox)."},
+  {id:"LW 20 SHA",code:"PP-LW/20",carrier:"Hákový (R)",vol:20,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SHA",special:true,eur:17785,nakup:435700,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:5,maxT:12, oil:100, priceOnRequest:true,
+   desc:"Mobilní kontejner LW 20 m³ — komora Hardox 450® na dřevo (europalety, bedny) a tvrdý plast. Cena orientační (Hardox)."},
+  {id:"LW 22 SHA",code:"PP-LW/22",carrier:"Hákový (R)",vol:22,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SHA",special:true,eur:17924,nakup:439100,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:6,maxT:13, oil:100, priceOnRequest:true,
+   desc:"Mobilní kontejner LW 22 m³ — komora Hardox 450® na dřevo (europalety, bedny) a tvrdý plast. Cena orientační (Hardox)."},
+  {id:"LW 24 SHA",code:"PP-LW/24",carrier:"Hákový (R)",vol:24,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SHA",special:true,eur:18062,nakup:442500,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:6,maxT:14, oil:100, priceOnRequest:true,
+   desc:"Mobilní kontejner LW 24 m³ — komora Hardox 450® na dřevo (europalety, bedny) a tvrdý plast. Cena orientační (Hardox)."},
+
+  /* SW-COOL — chlazený izotermní lis na mokrý/bio odpad (SW základ + chladicí jednotka 4 025 €). */
+  {id:"SW 16 COOL",code:"PP-SW/16 COOL",carrier:"Hákový (R)",vol:16,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"COOL",eur:19008,nakup:465700,doprava:14000,sEl:5500,sBz:11000,sKo:18000,minT:3,maxT:8, oil:60,
+   desc:"Chlazený izotermní lis SW 16 m³ COOL na MOKRÝ / bio odpad (gastro, potravinářství). Chlazení ~5 °C proti zápachu a rozkladu při delším skladování. 100% těsnost, samočisticí."},
+  {id:"SW 18 COOL",code:"PP-SW/18 COOL",carrier:"Hákový (R)",vol:18,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"COOL",eur:19128,nakup:468600,doprava:14000,sEl:5500,sBz:11000,sKo:18000,minT:4,maxT:9, oil:60,
+   desc:"Chlazený izotermní lis SW 18 m³ COOL na mokrý / bio odpad. Chlazení ~5 °C, 100% těsnost, samočisticí."},
+  {id:"SW 20 COOL",code:"PP-SW/20 COOL",carrier:"Hákový (R)",vol:20,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"COOL",eur:19249,nakup:471600,doprava:14000,sEl:5500,sBz:11000,sKo:18000,minT:4,maxT:10, oil:60,
+   desc:"Chlazený izotermní lis SW 20 m³ COOL na mokrý / bio odpad. Chlazení ~5 °C, 100% těsnost, samočisticí."},
+  {id:"SW 22 COOL",code:"PP-SW/22 COOL",carrier:"Hákový (R)",vol:22,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"COOL",eur:19369,nakup:474500,doprava:14000,sEl:5500,sBz:11000,sKo:18000,minT:5,maxT:11, oil:60,
+   desc:"Chlazený izotermní lis SW 22 m³ COOL na mokrý / bio odpad. Chlazení ~5 °C, 100% těsnost, samočisticí."},
+  {id:"SW 24 COOL",code:"PP-SW/24 COOL",carrier:"Hákový (R)",vol:24,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"COOL",eur:19490,nakup:477500,doprava:14000,sEl:5500,sBz:11000,sKo:18000,minT:5,maxT:12, oil:60,
+   desc:"Chlazený izotermní lis SW 24 m³ COOL na mokrý / bio odpad. Chlazení ~5 °C, 100% těsnost, samočisticí."},
+
+  /* SWZR — mokrý odpad, řetěz-brána + malý hák / city lift (malé prostory, podzemní garáže). */
+  {id:"SWZR 6 SHA",code:"PP-SWZR/6",carrier:"Hákový (R)",vol:6,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SW",eur:14283,nakup:349900,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:1,maxT:4, oil:60,
+   desc:"Lis SWZR 6 m³ na MOKRÝ odpad — řetěz-brána + malý hák / city lift. Pro malé prostory a podzemní garáže. 100% těsnost, samočisticí."},
+  {id:"SWZR 8 SHA",code:"PP-SWZR/8",carrier:"Hákový (R)",vol:8,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SW",eur:14404,nakup:352900,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:2,maxT:5, oil:60,
+   desc:"Lis SWZR 8 m³ na mokrý odpad — řetěz-brána + malý hák / city lift. 100% těsnost, samočisticí."},
+  {id:"SWZR 10 SHA",code:"PP-SWZR/10",carrier:"Hákový (R)",vol:10,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SW",eur:14524,nakup:355800,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:2,maxT:6, oil:60,
+   desc:"Lis SWZR 10 m³ na mokrý odpad — řetěz-brána + malý hák / city lift. 100% těsnost, samočisticí."},
+  {id:"SWZR 12 SHA",code:"PP-SWZR/12",carrier:"Hákový (R)",vol:12,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SW",eur:14645,nakup:358800,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:3,maxT:7, oil:60,
+   desc:"Lis SWZR 12 m³ na mokrý odpad — řetěz-brána + malý hák / city lift. 100% těsnost, samočisticí."},
+  {id:"SWZR 14 SHA",code:"PP-SWZR/14",carrier:"Hákový (R)",vol:14,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SW",eur:14765,nakup:361700,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:3,maxT:8, oil:60,
+   desc:"Lis SWZR 14 m³ na mokrý odpad — řetěz-brána + malý hák / city lift. 100% těsnost, samočisticí."},
+
+  /* L-PTO — pohon z vozidla (24 V, bez el. přípojky). Cena na vyžádání dle výkresu. */
+  {id:"L 18 PTO",code:"PP-L/18 PTO",carrier:"Hákový (R)",vol:18,force:300,motor:"—",power:"24 V — pohon z vozidla",hopper:"PTO",eur:15344,nakup:375900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:11, oil:80, special:true, priceOnRequest:true,
+   desc:"Mobilní lis L 18 m³ PTO — hydraulika poháněná VÝVODOVÝM HŘÍDELEM vozidla, bez el. přípojky. Pro separovaný sběr (karton, fólie, PET) přímo v terénu. Cena na vyžádání dle výkresu."},
+  {id:"L 20 PTO",code:"PP-L/20 PTO",carrier:"Hákový (R)",vol:20,force:300,motor:"—",power:"24 V — pohon z vozidla",hopper:"PTO",eur:15465,nakup:378900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:12, oil:80, special:true, priceOnRequest:true,
+   desc:"Mobilní lis L 20 m³ PTO — hydraulika poháněná vývodovým hřídelem vozidla, bez el. přípojky. Separovaný sběr v terénu. Cena na vyžádání dle výkresu."},
+  {id:"L 22 PTO",code:"PP-L/22 PTO",carrier:"Hákový (R)",vol:22,force:300,motor:"—",power:"24 V — pohon z vozidla",hopper:"PTO",eur:15586,nakup:381900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:13, oil:80, special:true, priceOnRequest:true,
+   desc:"Mobilní lis L 22 m³ PTO — hydraulika poháněná vývodovým hřídelem vozidla, bez el. přípojky. Separovaný sběr v terénu. Cena na vyžádání dle výkresu."},
+  {id:"L 24 PTO",code:"PP-L/24 PTO",carrier:"Hákový (R)",vol:24,force:300,motor:"—",power:"24 V — pohon z vozidla",hopper:"PTO",eur:15706,nakup:384800,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:14, oil:80, special:true, priceOnRequest:true,
+   desc:"Mobilní lis L 24 m³ PTO — hydraulika poháněná vývodovým hřídelem vozidla, bez el. přípojky. Separovaný sběr v terénu. Cena na vyžádání dle výkresu."},
+
+  /* L-PTO-SL — PTO + boční výklop normovaných nádob 120–1100 l (náhrada popelářského vozu). */
+  {id:"L 18 PTO SL",code:"PP-L/18 PTO SL",carrier:"Hákový (R)",vol:18,force:300,motor:"—",power:"24 V — pohon z vozidla",hopper:"PTO-SL",eur:18413,nakup:451100,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:11, oil:80, special:true, priceOnRequest:true,
+   desc:"Mobilní lis L 18 m³ PTO-SL — pohon z vozidla + boční hydraulický výklop normovaných nádob 120–1100 l (EN 840). Náhrada popelářského vozu, až 3× lepší lisování. Cena na vyžádání dle výkresu."}
 ];
 
 /* Typová nápověda k Zentex modelu do nabídky: na co je + odkaz na zentex.pl (zdroj: ceník Zentex 2026) */
@@ -1110,6 +1203,41 @@ function zentexTypeKey(p){
   return 'N-SHA';
 }
 function zentexSpecs(p){ return ZENTEX_SPECS[zentexTypeKey(p)] || null; }
+/* Rozměry z kótovaných nákresů (Drive datasheety): w=šířka, h=výška [mm], len=délka dle objemu [mm].
+   Délka = největší z kót A/B/C (celková délka přes háky / kontejnerová část). */
+const ZENTEX_DIMS = {
+ 'L-SHA':  {w:2550,h:2560,len:{16:6460,18:6860,20:7260,22:7660,24:8060}},
+ 'LW-SHA': {w:2550,h:2560,len:{16:6460,18:6860,20:7260,22:7660,24:8060}},
+ 'N-SHA':  {w:2550,h:2560,len:{16:5960,18:6360,20:6760,22:7160,24:7560}},
+ 'XL-SHA': {w:2600,h:2570,len:{16:7010,18:7410,20:7810,22:8210,24:8610}},
+ 'XL-SPOON':{w:2800,h:2660,len:{16:7010,18:7410,20:7810,22:8210}},
+ 'L-MR':   {w:2440,h:2560,len:{16:6460,18:6860,20:7260,22:7660,24:8060}},
+ 'N-MR':   {w:2440,h:2560,len:{16:5960,18:6360,20:6760,22:7160,24:7560}},
+ 'XL-MR':  {w:2440,h:2570,len:{16:7010,18:7410,20:7810,22:8210}},
+ 'L-SO':   {w:2310,h:2630,len:{16:6460,18:6860,20:7260,22:7660,24:8060}},
+ 'L-DB-SO2':{w:2300,h:2560,len:{16:6345,18:6745,20:7145,22:7545,24:7945}},
+ 'N-DB-SO2':{w:2300,h:2560,len:{16:5845,18:6245,20:6645,22:7045,24:7445}},
+ 'L-PTO':  {w:2470,h:2730,len:{16:6460,18:6860,20:7260,22:7660,24:8060}},
+ 'L-PTO-SL':{w:2480,h:2490,len:{16:6590,18:6590,20:6990,22:7390,24:7790}},
+ 'ZR-SHA': {w:2050,h:2500,len:{6:4080,8:4630,10:5180,12:5730,14:6280}},
+ 'R-SHA':  {w:2040,h:2420,len:{6:4260,8:4810,10:5360,12:5910,14:6460}},
+ 'ZR-5-PL':{w:1830,h:2360,len:{5:3980}},
+ 'SWR-SHA':{w:2030,h:2420,len:{6:4230,8:4780,10:5330,12:5880,14:6430}},
+ 'SWZR-SHA':{w:2050,h:2500,len:{6:4130,8:4680,10:5230,12:5780,14:6330}},
+ 'SWZ-SHA':{w:2050,h:2445,len:{6:3910,8:4460,10:5010,12:5560,14:6110}},
+ 'SW-COOL':{w:2550,h:2650,len:{16:5230,18:5630,20:6030,22:6430,24:6830}}
+ // Z-SHA: kótovaný nákres v datasheetu chybí → rozměry neuvádíme
+};
+function zentexDims(p){
+  const d = ZENTEX_DIMS[zentexTypeKey(p)]; if(!d) return null;
+  let L = d.len ? d.len[p.vol] : null;
+  if(L==null && d.len){ // nejbližší dostupný objem
+    const ks = Object.keys(d.len).map(Number).sort((a,b)=>Math.abs(a-p.vol)-Math.abs(b-p.vol));
+    if(ks.length) L = d.len[ks[0]];
+  }
+  return { w:d.w, h:d.h, len:L };
+}
+function zentexHasDrawing(p){ return zentexTypeKey(p)!=='Z-SHA'; }
 /* Lisovací síla: 300 kN základ + případný příplatkový upgrade (dle p.force z ceníku). */
 function zentexForceLabel(p){
   const base=300, max=p.force||300;
@@ -1863,7 +1991,8 @@ function compactorRating(p, ctx){
 /* Doporučí TOP N Zentex modelů podle skóre, filtruje primárně podle nosiče. */
 function recommendedZentexScored(topN){
   const ctx = buildZentexCtx();
-  const filtered = COMPACTORS.filter(p => p.carrier === ctx.carrierType);
+  // Default nabídka = jen pevně naceněné standardní modely; „na vyžádání" (LW, PTO, SO1, DB SO2) jen přes ruční procházení
+  const filtered = COMPACTORS.filter(p => p.carrier === ctx.carrierType && !p.priceOnRequest);
   const scored = filtered.map(p => ({ p, ...compactorRating(p, ctx) }));
   scored.sort((a, b) => b.score.total - a.score.total);
   return scored.slice(0, topN || 5);
@@ -2228,6 +2357,11 @@ function render(){
     <div id="panel-table" class="panel"></div>
     <div id="panel-params" class="panel"></div>
     <div id="panel-offer" class="panel"></div>
+    <div id="techModal" aria-hidden="true">
+      <button id="techModalClose" title="Zavřít" onclick="closeTechSheet()">×</button>
+      <div class="ts-actions"><button class="ts-print" onclick="printTechSheet()">🖨️ Tisk / uložit PDF</button></div>
+      <div class="ts-scroll"><div id="techSheet"></div></div>
+    </div>
     <div id="panel-history" class="panel"></div>
     <div id="panel-contract" class="panel"></div>
     <div id="panel-lease" class="panel"></div>
@@ -2665,6 +2799,7 @@ function pressCard(p,c,best){
         <div class="sm">Průchodnost (teor.)<b>${zspec&&zspec.m3h?zspec.m3h+' m³/h':'—'}</b></div>
         <div class="sm">Plnicí otvor (horní)<b style="font-size:11px">${zspec?zspec.chuteT+' mm':'—'}</b></div>
         <div class="sm">Výška hrany plnění<b>${zspec&&zspec.edge?zspec.edge+' mm':'—'}</b></div>
+        <div class="sm">Rozměry D×Š×V<b style="font-size:11px">${(function(){var d=zentexDims(p);return d&&d.len?(d.len+'×'+d.w+'×'+d.h+' mm'):'—';})()}</b></div>
         <div class="sm">Motor / čerpadlo<b style="font-size:11px">${zspec?((zspec.motorKw?zspec.motorKw+' kW':'bez motoru (PTO)')+' · '+(typeof zspec.pump==='number'?zspec.pump+' L/min':zspec.pump)):'—'}</b></div>
         <div class="sm">Materiál komory<b style="font-size:11px">${zspec?zspec.steel:'—'}</b></div>
         <div class="sm">Střecha / víko<b style="font-size:11px">${zspec?zspec.cover:'—'}</b></div>
@@ -2757,6 +2892,7 @@ function pressCard(p,c,best){
       <div class="pprice">${priceBlock}</div>
       ${tipBlock}
       <div class="plinks">${links}</div>
+      ${zx?`<button class="ts-btn" onclick="openTechSheet('${(p.id||'').replace(/'/g,"\\'")}')">📄 Technický list (foto, nákres, rozměry)</button>`:''}
       <div class="add-offer">
         <button data-add="${p.id}" class="${inOffer?'added':''}">${inOffer?I.check+' V nabídce':I.plus+' Přidat do nabídky'}</button>
       </div>
@@ -4800,6 +4936,73 @@ function printOfferPDF(){
   var cleanup=function(){ document.body.classList.remove('print-offer'); window.removeEventListener('afterprint',cleanup); };
   window.addEventListener('afterprint',cleanup);
   setTimeout(cleanup,4000); // pojistka, kdyby afterprint nedorazil
+  window.print();
+}
+
+/* ===== TECHNICKÝ LIST (vlastní, zkrácený) — foto + kótovaný nákres + parametry z datasheetů ===== */
+function buildTechSheetHTML(p){
+  const zs=zentexSpecs(p), zd=zentexDims(p), zt=zentexTypeInfo(p), zw=zentexWaste(p), zo=zentexOptions(p);
+  const photo='/img/zentex/'+zentexPhoto(p)+'.jpg';
+  const hasDraw=zentexHasDrawing(p);
+  const draw='/img/zentex/dim/'+zentexPhoto(p)+'.jpg';
+  const dimsStr = zd&&zd.len ? (zd.len+' × '+zd.w+' × '+zd.h+' mm') : '—';
+  const row=(k,v)=> v? '<tr><td class="k">'+k+'</td><td class="v">'+v+'</td></tr>' : '';
+  const media = hasDraw
+    ? '<div class="ts-media"><figure><img src="'+photo+'" alt=""><figcaption>Produktové foto</figcaption></figure>'
+      + '<figure><img src="'+draw+'" alt=""><figcaption>Rozměrový nákres (kóty v mm)</figcaption></figure></div>'
+    : '<div class="ts-media solo"><figure><img src="'+photo+'" alt=""><figcaption>Produktové foto</figcaption></figure></div>';
+  const rozmery = '<table class="ts-table">'
+    + row('Objem kontejneru', p.vol+' m³')
+    + row('Rozměry D × Š × V', dimsStr)
+    + (zs?row('Plnicí otvor (horní / dolní)', zs.chuteT+' / '+zs.chuteB+' mm'):'')
+    + (zs&&zs.edge?row('Výška hrany plnění', zs.edge+' mm'):'')
+    + (zs?row('Materiál lisovací komory', zs.steel):'')
+    + (zs?row('Střecha / víko', zs.cover):'')
+    + (zs?row('Nosič / hák', zs.hook):row('Nosič', p.carrier))
+    + '</table>';
+  const pohon = '<table class="ts-table">'
+    + row('Lisovací síla', zentexForceLabel(p))
+    + (zs&&zs.chamber?row('Objem lisovací komory (zdvih)', zs.chamber+' m³'):'')
+    + (zs&&zs.cycle?row('Čas jednoho cyklu', zs.cycle+' s'):(zs&&zs.pto?row('Čas cyklu','dle čerpadla vozidla'):''))
+    + (zs&&zs.m3h?row('Průchodnost (teoretická)', zs.m3h+' m³/h'):'')
+    + (zs?row('Motor', zs.motorKw?zs.motorKw+' kW':'bez motoru — pohon z vozidla (PTO)'):'')
+    + (zs?row('Hydraulické čerpadlo', typeof zs.pump==='number'?zs.pump+' L/min':zs.pump):'')
+    + row('Hydraulický olej', (p.oil||'—')+' L')
+    + (p.power?row('El. přípojka', p.power):'')
+    + '</table>';
+  const waste = zw ? '<div class="ts-sec-title">Vhodné druhy odpadu</div><div class="ts-tags">'
+    + zw.vhodne.map(w=>'<span>'+w+'</span>').join('') + '</div>'
+    + (zw.pozor?'<div class="ts-note"><b>Pozor:</b> '+zw.pozor+'</div>':'') : '';
+  const opts = (zo&&zo.length) ? '<div class="ts-sec-title">Volitelné příplatky</div><table class="ts-table">'
+    + zo.map(o=>'<tr><td class="k">'+o.name+'</td><td class="v">'+o.desc+' — <b>'+o.price+'</b></td></tr>').join('')
+    + '</table>' : '';
+  const priceNote = p.priceOnRequest ? '<div class="ts-note">Cena tohoto provedení je <b>orientační</b> — finální dle konfigurace na vyžádání.</div>' : '';
+  return '<div class="ts-page">'
+    + '<div class="ts-head"><div><div class="ts-brand">ELKOPLAST CZ · Technický list</div>'
+    +   '<h2>Zentex '+p.id+'</h2><div class="ts-sub">'+(zt?zt.label+' — '+zt.ucel:'')+'</div></div>'
+    +   '<div class="ts-badge">'+p.vol+' m³</div></div>'
+    + media
+    + '<div class="ts-sec-title">Rozměry a konstrukce</div>'+rozmery
+    + '<div class="ts-sec-title">Pohon a výkon</div>'+pohon
+    + waste + opts + priceNote
+    + '<div class="ts-foot"><span>ELKOPLAST CZ, s.r.o. · Štefánikova 2664, 760 01 Zlín · www.elkoplast.cz</span>'
+    +   '<span>Výrobce: P.U.E. ZENTEX, Kalisz (PL). Údaje z výrobních listů, změna vyhrazena.</span></div>'
+    + '</div>';
+}
+function openTechSheet(id){
+  const p=findProduct(id); if(!p) return;
+  document.getElementById('techSheet').innerHTML=buildTechSheetHTML(p);
+  const m=document.getElementById('techModal'); m.classList.add('open'); m.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+function closeTechSheet(){
+  const m=document.getElementById('techModal'); m.classList.remove('open'); m.setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+}
+function printTechSheet(){
+  document.body.classList.add('print-tech');
+  var cleanup=function(){ document.body.classList.remove('print-tech'); window.removeEventListener('afterprint',cleanup); };
+  window.addEventListener('afterprint',cleanup); setTimeout(cleanup,4000);
   window.print();
 }
 function offerDocHTML(sel){
