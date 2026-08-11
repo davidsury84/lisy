@@ -1150,7 +1150,46 @@ const COMPACTORS = [
 
   /* L-PTO-SL — PTO + boční výklop normovaných nádob 120–1100 l (náhrada popelářského vozu). */
   {id:"L 18 PTO SL",code:"PP-L/18 PTO SL",carrier:"Hákový (R)",vol:18,force:300,motor:"—",power:"24 V — pohon z vozidla",hopper:"PTO-SL",eur:18413,nakup:451100,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:11, oil:80, special:true, priceOnRequest:true,
-   desc:"Mobilní lis L 18 m³ PTO-SL — pohon z vozidla + boční hydraulický výklop normovaných nádob 120–1100 l (EN 840). Náhrada popelářského vozu, až 3× lepší lisování. Cena na vyžádání dle výkresu."}
+   desc:"Mobilní lis L 18 m³ PTO-SL — pohon z vozidla + boční hydraulický výklop normovaných nádob 120–1100 l (EN 840). Náhrada popelářského vozu, až 3× lepší lisování. Cena na vyžádání dle výkresu."},
+
+  /* ===== DOPLNĚNÍ: zbývající typy z výrobních listů ===== */
+  /* ZR — řetěz-brána + malý hák (kombinace), 6–14 m³. Cena ≈ řada R. */
+  {id:"ZR 6 SHA",code:"PP-ZR/6",carrier:"Řetězový (Z)",vol:6,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SHA",eur:14186,nakup:347600,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:1,maxT:4, oil:60,
+   desc:"Mobilní lisovací kontejner ZR 6 m³ — řetěz-brána i malý hák (city lift). Vhodné pro: menší provozy, sídliště, nemocnice, podzemní garáže (0,5–4 t/měs) — lehčí materiály — lepenka, papír, fólie."},
+  {id:"ZR 8 SHA",code:"PP-ZR/8",carrier:"Řetězový (Z)",vol:8,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SHA",eur:14235,nakup:348800,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:2,maxT:5, oil:60,
+   desc:"Mobilní lisovací kontejner ZR 8 m³ — řetěz-brána i malý hák. Menší provozy, sídliště, uzavřené prostory — lepenka, papír, fólie."},
+  {id:"ZR 10 SHA",code:"PP-ZR/10",carrier:"Řetězový (Z)",vol:10,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SHA",eur:14283,nakup:349900,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:2,maxT:6, oil:60,
+   desc:"Mobilní lisovací kontejner ZR 10 m³ — řetěz-brána i malý hák. Supermarkety, distribuční centra — lepenka, papír, fólie."},
+  {id:"ZR 12 SHA",code:"PP-ZR/12",carrier:"Řetězový (Z)",vol:12,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SHA",eur:14331,nakup:351100,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:3,maxT:7, oil:60,
+   desc:"Mobilní lisovací kontejner ZR 12 m³ — řetěz-brána i malý hák. Supermarkety, distribuční centra — lepenka, papír, fólie."},
+  {id:"ZR 14 SHA",code:"PP-ZR/14",carrier:"Řetězový (Z)",vol:14,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SHA",eur:14379,nakup:352300,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:3,maxT:8, oil:60,
+   desc:"Mobilní lisovací kontejner ZR 14 m³ — řetěz-brána i malý hák. Supermarkety, distribuční centra — lepenka, papír, fólie."},
+
+  /* ZR 5 PL — nejmenší (5 m³), řetěz + malý hák / city lift. Cena orientační. */
+  {id:"ZR 5 PL",code:"PP-ZR/5-PL",carrier:"Řetězový (Z)",vol:5,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"SHA",eur:13200,nakup:323400,doprava:12000,sEl:4500,sBz:9000,sKo:14000,minT:1,maxT:3, oil:60, special:true, priceOnRequest:true,
+   desc:"Nejmenší mobilní lisovací kontejner ZR 5 m³ (PL) — řetěz-brána, malý hák i city lift. Pro diskonty, malá centra, sídliště, nemocnice s omezeným prostorem. Lehčí materiály. Cena orientační."},
+
+  /* XL-SPOON — mobilní překladiště s lžícovým plněním (16–22 m³). Ceny z listu. */
+  {id:"XL 16 SPOON",code:"PP-XL/16 SPOON",carrier:"Hákový (R)",vol:16,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SPOON",eur:16500,nakup:404300,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:6,maxT:12, oil:100, special:true,
+   desc:"XL 16 m³ SPOON — mobilní PŘEKLADIŠTĚ s lžícovým plněním. Plní se z kontejneru bez rampy, centrální sběrné místo. Lžícový systém pro objemný / špatně stlačitelný materiál."},
+  {id:"XL 18 SPOON",code:"PP-XL/18 SPOON",carrier:"Hákový (R)",vol:18,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SPOON",eur:17000,nakup:416500,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:7,maxT:13, oil:100, special:true,
+   desc:"XL 18 m³ SPOON — mobilní překladiště s lžícovým plněním. Plnění z kontejneru bez rampy. Objemný / špatně stlačitelný materiál."},
+  {id:"XL 20 SPOON",code:"PP-XL/20 SPOON",carrier:"Hákový (R)",vol:20,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SPOON",eur:17500,nakup:428800,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:8,maxT:14, oil:100, special:true,
+   desc:"XL 20 m³ SPOON — mobilní překladiště s lžícovým plněním. Plnění z kontejneru bez rampy. Objemný / špatně stlačitelný materiál."},
+  {id:"XL 22 SPOON",code:"PP-XL/22 SPOON",carrier:"Hákový (R)",vol:22,force:400,motor:"7,5 kW",power:"3×400V 32A",hopper:"SPOON",eur:18000,nakup:441000,doprava:16000,sEl:5500,sBz:11000,sKo:18000,minT:9,maxT:16, oil:100, special:true,
+   desc:"XL 22 m³ SPOON — mobilní překladiště s lžícovým plněním. Plnění z kontejneru bez rampy. Objemný / špatně stlačitelný materiál."},
+
+  /* N-DB SO2 — dělený (2 komory), N řada. Cena orientační / na vyžádání dle dělení. */
+  {id:"N 16 DB SO2",code:"PP-N/16 DB SO2",carrier:"Hákový (R)",vol:16,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"DB SO2",eur:14983,nakup:367100,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:4,maxT:10, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner N 16 m³ DB SO2 — otevřené OBĚ boční strany, dělení 50/50, 60/40, 70/30 (dvě frakce v jednom). Jen verze „S”. Cena ORIENTAČNÍ — dle dělení na vyžádání."},
+  {id:"N 18 DB SO2",code:"PP-N/18 DB SO2",carrier:"Hákový (R)",vol:18,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"DB SO2",eur:15104,nakup:370100,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:11, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner N 18 m³ DB SO2 — obě boční strany otevíratelné, dělení dle potřeby. Jen verze „S”. Cena ORIENTAČNÍ — na vyžádání."},
+  {id:"N 20 DB SO2",code:"PP-N/20 DB SO2",carrier:"Hákový (R)",vol:20,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"DB SO2",eur:15224,nakup:373000,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:5,maxT:12, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner N 20 m³ DB SO2 — obě boční strany otevíratelné, dvě frakce v jednom. Jen verze „S”. Cena ORIENTAČNÍ — na vyžádání."},
+  {id:"N 22 DB SO2",code:"PP-N/22 DB SO2",carrier:"Hákový (R)",vol:22,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"DB SO2",eur:15345,nakup:375900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:13, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner N 22 m³ DB SO2 — obě boční strany otevíratelné. Jen verze „S”. Cena ORIENTAČNÍ — na vyžádání."},
+  {id:"N 24 DB SO2",code:"PP-N/24 DB SO2",carrier:"Hákový (R)",vol:24,force:300,motor:"5,5 kW",power:"3×400V 25A",hopper:"DB SO2",eur:15465,nakup:378900,doprava:14000,sEl:5000,sBz:10000,sKo:16000,minT:6,maxT:14, oil:80, special:true, priceOnRequest:true,
+   desc:"Dělený mobilní kontejner N 24 m³ DB SO2 — obě boční strany otevíratelné, dvě frakce v jednom. Jen verze „S”. Cena ORIENTAČNÍ — na vyžádání."}
 ];
 
 /* Typová nápověda k Zentex modelu do nabídky: na co je + odkaz na zentex.pl (zdroj: ceník Zentex 2026) */
