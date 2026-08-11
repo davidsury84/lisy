@@ -2986,7 +2986,7 @@ function pressCard(p,c,best){
     ${best?`<div class="crown">${sale?'Nejnižší cena':'Nejvýhodnější volba'}</div>`:''}
     <div class="press-img">${serieTag}${door}${img}</div>
     <div class="pbody">
-      <h3>${zx?'Zentex ':''}${p.id}</h3>
+      <h3>${p.id}</h3>
       <div class="ptag">${tag}</div>
       <div class="pdesc">${p.desc||''}</div>
       ${zx&&zwaste?`<div class="zwaste">
@@ -5094,7 +5094,7 @@ function buildTechSheetHTML(p){
   const priceNote = p.priceOnRequest ? '<div class="ts-note">Cena tohoto provedení je <b>orientační</b> — finální dle konfigurace na vyžádání.</div>' : '';
   return '<div class="ts-page">'
     + '<div class="ts-head"><div><div class="ts-brand">ELKOPLAST CZ · Technický list</div>'
-    +   '<h2>Zentex '+p.id+'</h2><div class="ts-sub">'+(zt?zt.label+' — '+zt.ucel:'')+'</div></div>'
+    +   '<h2>'+p.id+'</h2><div class="ts-sub">'+(zt?zt.label.replace(/^Zentex\s*/,'')+' — '+zt.ucel:'')+'</div></div>'
     +   '<div class="ts-badge">'+p.vol+' m³</div></div>'
     + media
     + '<div class="ts-sec-title">Rozměry a konstrukce</div>'+rozmery
@@ -6946,7 +6946,7 @@ function buildExcelSheets(){
     if(prof)o.push([C.b('Obchodník:'),C.s((prof.name||'')+(prof.email?' · '+prof.email:'')+(prof.phone?' · '+prof.phone:''))]);
     o.push([]);
     const specOf=p=>prodIsZentex(p)?(p.vol+' m³ · '+p.carrier):(p.force+' t · balík '+p.card+' kg');
-    const nameOf=p=>(prodIsZentex(p)?'Zentex ':'Bramidan ')+p.id;
+    const nameOf=p=>(prodIsZentex(p)?'':'Bramidan ')+p.id;
     if(sale){
       o.push([C.h('Model'),C.h('Specifikace'),C.h('Prodejní cena (bez DPH)'),C.h('Servis/rok (bez DPH)'),C.h('Jednoráz. celkem (bez DPH)')]);
       let sP=0,sS=0,sO=0;
@@ -7044,7 +7044,7 @@ function offerSummaryText(){
     sel.forEach(p=>{
       const c=calc(p,STATE.serviceMode);
       const pz=prodIsZentex(p);
-      const nm=(pz?'Zentex ':'Bramidan ')+p.id;
+      const nm=(pz?'':'Bramidan ')+p.id;
       const spec=pz?(p.vol+' m³, '+p.carrier):(p.serie+'-série, '+p.force+' t');
       sO+=c.oneTimeTotal;
       if(sale){
