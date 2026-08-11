@@ -1202,27 +1202,27 @@ const COMPACTORS = [
    Celkové vnější rozměry (D×Š×V) a hmotnost v listech nejsou (jen v obrázcích) → neuvádíme.
    Lisovací síla: základ 300 kN @ 180 bar; 320/400 kN jsou příplatkové hydrauliky TD/H-TD. */
 const ZENTEX_SPECS = {
- 'LW-SHA':  {chamber:1.6, cycle:60, m3h:96,  chuteT:'2200×1770', chuteB:'1400×1770', edge:1510, motorKw:7.5, pump:21, steel:'Hardox 450® (dno i stěny)', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'L-SHA':   {chamber:1.71,cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'N-SHA':   {chamber:1.36,cycle:47, m3h:104, chuteT:'1700×1750', chuteB:'1000×1750', edge:1450, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'XL-SHA':  {chamber:2.46,cycle:70, m3h:125, chuteT:'2750×1890', chuteB:'2050×1890', edge:1570, motorKw:7.5, pump:23, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'XL-SPOON':{chamber:2.46,cycle:70, m3h:125, chuteT:'2750×1890', chuteB:'2050×1890', edge:1570, motorKw:7.5, pump:23, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'L-MR':    {chamber:1.71,cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné + pohyblivá střecha', hook:'velký hák', wet:false},
- 'N-MR':    {chamber:1.36,cycle:47, m3h:104, chuteT:'1700×1750', chuteB:'1000×1750', edge:1450, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné + pohyblivá střecha', hook:'velký hák', wet:false},
- 'XL-MR':   {chamber:2.46,cycle:70, m3h:125, chuteT:'2750×1890', chuteB:'2050×1890', edge:1570, motorKw:7.5, pump:23, steel:'ocel 8 mm', cover:'1/2-dílné + pohyblivá střecha', hook:'velký hák', wet:false},
- 'L-SO':    {chamber:1.71,cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:5.5, pump:21, steel:'ocel 8 mm + otevíratelná boční stěna (90°)', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'L-DB-SO2':{chamber:1.71,cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:5.5, pump:21, steel:'ocel 8 mm + boční otevíratelné stěny', cover:'1/2-dílné', hook:'velký hák', wet:false},
- 'N-DB-SO2':{chamber:1.36,cycle:47, m3h:104, chuteT:'1700×1750', chuteB:'1000×1750', edge:1450, motorKw:5.5, pump:21, steel:'ocel 8 mm + boční otevíratelné stěny', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'LW-SHA':  {chamber:'1,6', cycle:60, m3h:96,  chuteT:'2200×1770', chuteB:'1400×1770', edge:1510, motorKw:'7,5', pump:21, steel:'Hardox 450® (dno i stěny)', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'L-SHA':   {chamber:'1,71',cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'N-SHA':   {chamber:'1,36',cycle:47, m3h:104, chuteT:'1700×1750', chuteB:'1000×1750', edge:1450, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'XL-SHA':  {chamber:'2,46',cycle:70, m3h:125, chuteT:'2750×1890', chuteB:'2050×1890', edge:1570, motorKw:'7,5', pump:23, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'XL-SPOON':{chamber:'2,46',cycle:70, m3h:125, chuteT:'2750×1890', chuteB:'2050×1890', edge:1570, motorKw:'7,5', pump:23, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'L-MR':    {chamber:'1,71',cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné + pohyblivá střecha', hook:'velký hák', wet:false},
+ 'N-MR':    {chamber:'1,36',cycle:47, m3h:104, chuteT:'1700×1750', chuteB:'1000×1750', edge:1450, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné + pohyblivá střecha', hook:'velký hák', wet:false},
+ 'XL-MR':   {chamber:'2,46',cycle:70, m3h:125, chuteT:'2750×1890', chuteB:'2050×1890', edge:1570, motorKw:'7,5', pump:23, steel:'ocel 8 mm', cover:'1/2-dílné + pohyblivá střecha', hook:'velký hák', wet:false},
+ 'L-SO':    {chamber:'1,71',cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:'5,5', pump:21, steel:'ocel 8 mm + otevíratelná boční stěna (90°)', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'L-DB-SO2':{chamber:'1,71',cycle:60, m3h:102, chuteT:'2200×1770', chuteB:'1500×1770', edge:1510, motorKw:'5,5', pump:21, steel:'ocel 8 mm + boční otevíratelné stěny', cover:'1/2-dílné', hook:'velký hák', wet:false},
+ 'N-DB-SO2':{chamber:'1,36',cycle:47, m3h:104, chuteT:'1700×1750', chuteB:'1000×1750', edge:1450, motorKw:'5,5', pump:21, steel:'ocel 8 mm + boční otevíratelné stěny', cover:'1/2-dílné', hook:'velký hák', wet:false},
  'L-PTO':   {chamber:null,cycle:null,m3h:null,chuteT:'3100×1770', chuteB:'1500×1770', edge:2700, motorKw:null,pump:'pohon z vozidla', steel:'ocel 8 mm', cover:'—', hook:'velký hák', wet:false, pto:true},
  'L-PTO-SL':{chamber:null,cycle:null,m3h:null,chuteT:'2200×1770', chuteB:'1500×1770', edge:1600, motorKw:null,pump:'pohon z vozidla', steel:'ocel 8 mm + výklop nádob 120–1100 l', cover:'1-dílné hydraulické', hook:'velký hák', wet:false, pto:true},
- 'ZR-SHA':  {chamber:1.10,cycle:33, m3h:120, chuteT:'1450×1550', chuteB:'950×1550',  edge:1510, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'řetěz-brána + malý hák', wet:false},
- 'Z-SHA':   {chamber:1.10,cycle:33, m3h:120, chuteT:'1450×1550', chuteB:'950×1550',  edge:1510, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'řetěz-brána (DIN EN 30720)', wet:false},
- 'R-SHA':   {chamber:1.30,cycle:33, m3h:141, chuteT:'1460×1550', chuteB:'910×1550',  edge:1450, motorKw:5.5, pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'malý hák (>10 m³ i velký)', wet:false},
- 'ZR-5-PL': {chamber:0.87,cycle:39, m3h:80.3,chuteT:'1450×1560', chuteB:'790×1560',  edge:1300, motorKw:5.5, pump:21, steel:'dno 8 / stěny 6 mm', cover:'1/2-dílné', hook:'řetěz-brána + malý hák / city lift', wet:false},
- 'SWR-SHA': {chamber:0.49,cycle:34, m3h:52,  chuteT:'1450×1315', chuteB:'1060×1315', edge:1575, motorKw:5.5, pump:21, steel:'dno 8 / stěny 6 mm', cover:'1-dílné', hook:'malý/velký hák', wet:true},
- 'SWZR-SHA':{chamber:0.49,cycle:34, m3h:52,  chuteT:'1450×1315', chuteB:'1060×1315', edge:1575, motorKw:5.5, pump:21, steel:'dno 8 / stěny 6 mm', cover:'1-dílné', hook:'řetěz-brána + malý hák / city lift', wet:true},
- 'SWZ-SHA': {chamber:0.49,cycle:34, m3h:52,  chuteT:'1450×1315', chuteB:'1060×1315', edge:1575, motorKw:5.5, pump:21, steel:'dno 8 / stěny 6 mm', cover:'1-dílné', hook:'řetěz-brána (DIN EN 30720)', wet:true},
- 'SW-COOL': {chamber:0.80,cycle:34, m3h:85,  chuteT:'1450×1770', chuteB:'1060×1770', edge:1630, motorKw:5.5, pump:21, steel:'dno 8 / stěny 6 mm + chlazení ~5 °C', cover:'1-dílné (hydr. doporučeno)', hook:'velký hák', wet:true}
+ 'ZR-SHA':  {chamber:'1,10',cycle:33, m3h:120, chuteT:'1450×1550', chuteB:'950×1550',  edge:1510, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'řetěz-brána + malý hák', wet:false},
+ 'Z-SHA':   {chamber:'1,10',cycle:33, m3h:120, chuteT:'1450×1550', chuteB:'950×1550',  edge:1510, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'řetěz-brána (DIN EN 30720)', wet:false},
+ 'R-SHA':   {chamber:'1,30',cycle:33, m3h:141, chuteT:'1460×1550', chuteB:'910×1550',  edge:1450, motorKw:'5,5', pump:21, steel:'ocel 8 mm', cover:'1/2-dílné', hook:'malý hák (>10 m³ i velký)', wet:false},
+ 'ZR-5-PL': {chamber:'0,87',cycle:39, m3h:'80,3',chuteT:'1450×1560', chuteB:'790×1560',  edge:1300, motorKw:'5,5', pump:21, steel:'dno 8 / stěny 6 mm', cover:'1/2-dílné', hook:'řetěz-brána + malý hák / city lift', wet:false},
+ 'SWR-SHA': {chamber:'0,49',cycle:34, m3h:52,  chuteT:'1450×1315', chuteB:'1060×1315', edge:1575, motorKw:'5,5', pump:21, steel:'dno 8 / stěny 6 mm', cover:'1-dílné', hook:'malý/velký hák', wet:true},
+ 'SWZR-SHA':{chamber:'0,49',cycle:34, m3h:52,  chuteT:'1450×1315', chuteB:'1060×1315', edge:1575, motorKw:'5,5', pump:21, steel:'dno 8 / stěny 6 mm', cover:'1-dílné', hook:'řetěz-brána + malý hák / city lift', wet:true},
+ 'SWZ-SHA': {chamber:'0,49',cycle:34, m3h:52,  chuteT:'1450×1315', chuteB:'1060×1315', edge:1575, motorKw:'5,5', pump:21, steel:'dno 8 / stěny 6 mm', cover:'1-dílné', hook:'řetěz-brána (DIN EN 30720)', wet:true},
+ 'SW-COOL': {chamber:'0,80',cycle:34, m3h:85,  chuteT:'1450×1770', chuteB:'1060×1770', edge:1630, motorKw:'5,5', pump:21, steel:'dno 8 / stěny 6 mm + chlazení ~5 °C', cover:'1-dílné (hydr. doporučeno)', hook:'velký hák', wet:true}
 };
 /* Mapuje konkrétní model (id/hopper/carrier) na klíč typu v ZENTEX_SPECS. */
 function zentexTypeKey(p){
@@ -2851,8 +2851,11 @@ function renderCompare(){
   }
   const sale=isSale();
   const calcs=recs.map(p=>({p,c:calc(p,STATE.serviceMode)}));
-  // nejvýhodnější = nejnižší prodejní cena (prodej) / nejnižší měsíční (pronájem)
-  const lease=isLease(); const priceKey = sale?'prodejni':(lease?'leaseCelkemMesicVcServ':'celkemMesicVcServ'); const minIdx=calcs.reduce((mi,o,i,a)=>o.c[priceKey]<a[mi].c[priceKey]?i:mi,0);
+  // V režimu doporučení (Zentex, dle množství) = koruna na #1 podle VHODNOSTI (skóre), tj. shodně s pořadím.
+  // V ostatních režimech (procházení objem/nosič, Bramidan) = nejnižší cena.
+  const lease=isLease(); const priceKey = sale?'prodejni':(lease?'leaseCelkemMesicVcServ':'celkemMesicVcServ');
+  const ratingMode = isZentex() && STATE.selectMode==='tons';
+  const minIdx = ratingMode ? 0 : calcs.reduce((mi,o,i,a)=>o.c[priceKey]<a[mi].c[priceKey]?i:mi,0);
   el.innerHTML=`<div class="grid-presses">${calcs.map((o,i)=>pressCard(o.p,o.c,i===minIdx)).join('')}</div>`;
   el.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>toggleOffer(b.dataset.add));
 }
@@ -2892,7 +2895,10 @@ function pressCard(p,c,best){
         <div class="pp-sub">Ročně vč. servisu: <span class="mono">${num(c.celkemRokVcServ)} Kč</span> bez DPH (<span class="mono">${num(c.celkemRokVcServDph)} s DPH</span>)</div>
         <div class="pp-sub">Jednorázově (doprava, instalace, školení): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>`;
 
-  const tag = zx ? `${p.force} kN · ${p.motor} · ${p.power}` : `${p.force} t · ${p.kw||'—'} kW · ${p.power} · ${p.noise} dB`;
+  const _zsp = zx ? zentexSpecs(p) : null;
+  const tag = zx
+    ? `300 kN${(p.force>300)?' (volit. '+p.force+')':''} · ${_zsp&&_zsp.motorKw?_zsp.motorKw+' kW':(p.motor||'—')} · ${p.power}`
+    : `${p.force} t · ${p.kw||'—'} kW · ${p.power} · ${p.noise} dB`;
   const zspec = zx ? zentexSpecs(p) : null;
   const specMini = zx ? `
         <div class="sm">Objem kontejneru<b>${p.vol} m³</b></div>
@@ -3018,7 +3024,9 @@ function renderTable(){
   const sale=isSale();
   const zx=isZentex();
   const calcs=list.map(p=>({p,c:calc(p,STATE.serviceMode)}));
-  const lease=isLease(); const priceKey = sale?'prodejni':(lease?'leaseCelkemMesicVcServ':'celkemMesicVcServ'); const minIdx=calcs.reduce((mi,o,i,a)=>o.c[priceKey]<a[mi].c[priceKey]?i:mi,0);
+  const lease=isLease(); const priceKey = sale?'prodejni':(lease?'leaseCelkemMesicVcServ':'celkemMesicVcServ');
+  const ratingMode = zx && STATE.selectMode==='tons';
+  const minIdx = ratingMode ? 0 : calcs.reduce((mi,o,i,a)=>o.c[priceKey]<a[mi].c[priceKey]?i:mi,0);
   const head=`<th>Parametr</th>`+calcs.map((o,i)=>`<th class="${i===minIdx?'best-col':''}">${o.p.id}</th>`).join('');
   const techRows = zx ? [
     ['sec','Technické parametry'],
