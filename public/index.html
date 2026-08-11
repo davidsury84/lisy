@@ -2020,11 +2020,11 @@ function compactorRating(p, ctx){
   const cenaNorm = Math.max(0, Math.min(1, (maxNakup - p.nakup) / (maxNakup - minNakup)));
   s.cena = Math.round(10 * cenaNorm);
 
-  // Speciály (R-FS, SO1, DB SO2) jsou niche — lehce upozadit, ať vedou standardní modely, ale zůstanou v nabídce vidět
-  const specialPenalty = p.special ? 6 : 0;
-  // Mokré typy (SW*) jsou na mokrý odpad — pro běžný suchý dotaz upozadit (zůstanou v procházení)
+  // Speciály/mokré upozadit jen v běžném doporučení; v režimu „všechny typy" řadit podle skutečné vhodnosti.
+  const showAll = !!STATE.zAllTypes;
+  const specialPenalty = (p.special && !showAll) ? 6 : 0;
   const sp0 = zentexSpecs(p);
-  const wetPenalty = (sp0 && sp0.wet) ? 12 : 0;
+  const wetPenalty = (sp0 && sp0.wet && !showAll) ? 12 : 0;
   s.total = Math.max(0, s.sweetSpot + s.velikost + s.sila + s.frekvence + s.cena - forcePenalty - specialPenalty - wetPenalty);
 
   return {
@@ -2041,10 +2041,16 @@ function compactorRating(p, ctx){
 /* Doporučí TOP N Zentex modelů podle skóre, filtruje primárně podle nosiče. */
 function recommendedZentexScored(topN){
   const ctx = buildZentexCtx();
-  // Default nabídka = jen pevně naceněné standardní modely; „na vyžádání" (LW, PTO, SO1, DB SO2) jen přes ruční procházení
-  const filtered = COMPACTORS.filter(p => p.carrier === ctx.carrierType && !p.priceOnRequest);
-  const scored = filtered.map(p => ({ p, ...compactorRating(p, ctx) }));
+  const all = !!STATE.zAllTypes;
+  // Default: jen pevně naceněné standardní modely (strop topN). „Všechny typy": vč. speciálních/na vyžádání, bez stropu.
+  const filtered = COMPACTORS.filter(p => p.carrier === ctx.carrierType && (all || !p.priceOnRequest));
+  let scored = filtered.map(p => ({ p, ...compactorRating(p, ctx) }));
   scored.sort((a, b) => b.score.total - a.score.total);
+  if(all){
+    // „Všechny typy": jen vhodně DIMENZOVANÉ (velikost sedí na tonáž) — napříč všemi typy, bez stropu.
+    const fit = scored.filter(s => s.score.velikost > 0);
+    return (fit.length ? fit : scored).slice(0, 40);
+  }
   return scored.slice(0, topN || 5);
 }
 
@@ -2348,6 +2354,7 @@ const STATE = {
   materialType: "lepenkaPlast",   // klíč z MATERIAL_TYPES
   svozyPerMonth: 1,               // cílový počet svozů za měsíc (klient chce co nejméně)
   carrierType: "Hákový (R)",      // primární filtr vozového parku (Hákový/Řetězový)
+  zAllTypes: false,               // doporučení: zobrazit VŠECHNY vhodné typy vč. speciálních (LW, PTO, DB SO2, COOL, SO) bez stropu
   termMode: "years", years: 3, months: 6, serviceMode: "kompl",  client: { name:"", company:"", waste:"Lepenka + měkký plast", contact:"", date:new Date().toLocaleDateString('cs-CZ'), ico:"", dic:"", sidlo:"", fakturEmail:"", mistoPlneni:"", datumPocatku:"", vypovedniLhuta:"2 měsíce", serialNumbers:{}, yearsMade:{}, trialPeriod:false, zaruka:"24 měsíců" },
   selectedForOffer: [], activeTab: "compare"
 };
@@ -2495,6 +2502,11 @@ function heroHTML(){
         <label>Vybrat ${zx?'stroj':'lis'} podle</label>
         <div class="seg" id="selSeg" style="margin-bottom:14px">${selBtns}</div>
         <div id="selCtrl">${selectControlHTML()}</div>
+        ${zx && STATE.selectMode==='tons' ? `
+        <label class="z-alltypes" style="display:flex;align-items:flex-start;gap:9px;margin-top:12px;padding:11px 13px;border:1px solid var(--line2);border-radius:10px;background:var(--panel2,#f4f2ea);font-size:12.5px;color:var(--ink2);cursor:pointer">
+          <input type="checkbox" id="zAllTypes" ${STATE.zAllTypes?'checked':''} style="margin-top:2px">
+          <span><b>Nabídnout všechny typy podle použití</b> — přidá i speciální modely: <b>LW</b> (dřevo), <b>PTO</b> (bez el. přípojky), <b>DB&nbsp;SO2</b> (dělený), <b>COOL</b> (chlazený mokrý), <b>SO</b> (expandující). Zobrazí se všechny vhodné bez stropu; ceny speciálů jsou orientační/na vyžádání.</span>
+        </label>` : ''}
       </div>
 
       ${sale ? `
@@ -2700,6 +2712,8 @@ function bindHero(){
     bindSelectControl();
     refreshHeroDynamic(); refreshActivePanel();
   });
+  const zAll=document.getElementById('zAllTypes');
+  if(zAll) zAll.onchange=()=>{ STATE.zAllTypes=zAll.checked; refreshHeroDynamic(); refreshActivePanel(); };
   bindSelectControl();
   // marže (jen v režimu prodej)
   const mr=document.getElementById('marzeRange');
