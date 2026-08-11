@@ -3434,6 +3434,7 @@ function renderOffer(){
       <div style="margin-left:auto;display:flex;gap:9px">
         <button class="btn" id="offerSaveBtn">${I.save} Uložit do historie</button>
         <button class="btn" id="offerExcelBtn">${I.xls} Excel</button>
+        <button class="btn" id="offerCopyBtn">📋 Kopírovat pro e-mail</button>
         <button class="btn" id="offerMailBtn">${I.mail} Odeslat</button>
         <button class="btn gold" id="printOfferBtn">${I.print} PDF / Tisk</button>
       </div>
@@ -3442,6 +3443,8 @@ function renderOffer(){
   el.querySelectorAll('[data-chip]').forEach(b=>b.onclick=()=>{toggleOfferSilent(b.dataset.chip);renderOffer();});
   document.getElementById('printOfferBtn').onclick=()=>{ saveToHistory('PDF'); printOfferPDF(); };
   document.getElementById('offerExcelBtn').onclick=()=>{ saveToHistory('Excel'); exportExcel(); };
+  const cpBtn=document.getElementById('offerCopyBtn');
+  if(cpBtn) cpBtn.onclick=()=>{ copyOfferForEmail(cpBtn); };
   document.getElementById('offerMailBtn').onclick=()=>{ sendEmail(); };
   document.getElementById('offerSaveBtn').onclick=()=>{ const e=saveToHistory('ruční'); if(e)toast('Nabídka uložena do historie'); };
 }
@@ -5122,6 +5125,57 @@ function printTechSheet(){
   var cleanup=function(){ document.body.classList.remove('print-tech'); window.removeEventListener('afterprint',cleanup); };
   window.addEventListener('afterprint',cleanup); setTimeout(cleanup,4000);
   window.print();
+}
+/* Zkopíruje grafickou nabídku do schránky jako HTML (vč. obrázků) — pro vložení (Ctrl+V) do Gmailu.
+   Styly z CSS tříd se „zploští" do inline (jinak by je e-mail zahodil), obrázky se zapečou jako data URI. */
+const _COPY_PROPS=['color','background-color','font-family','font-size','font-weight','font-style','line-height',
+  'text-align','text-transform','letter-spacing','text-decoration','padding-top','padding-right','padding-bottom','padding-left',
+  'margin-top','margin-right','margin-bottom','margin-left','border-top','border-right','border-bottom','border-left',
+  'border-top-left-radius','border-top-right-radius','border-bottom-left-radius','border-bottom-right-radius',
+  'border-collapse','vertical-align','white-space','max-width'];
+/* Rekurzivně naklonuje uzel, zploští CSS do inline stylů a přeskočí technické listy (.offer-tech). */
+function _inlineForEmail(node){
+  if(node.nodeType===3) return document.createTextNode(node.nodeValue);
+  if(node.nodeType!==1) return null;
+  if(node.classList && node.classList.contains('offer-tech')) return null; // tech. listy do e-mailu ne (jsou v PDF)
+  const c=node.cloneNode(false);
+  if(node.tagName!=='IMG' && node.tagName!=='BR'){
+    const cs=getComputedStyle(node); let s=(node.getAttribute('style')||'');
+    for(const p of _COPY_PROPS){ const v=cs.getPropertyValue(p); if(v && v!=='auto' && v!=='normal' && v!=='none' && v!=='rgba(0, 0, 0, 0)') s+=p+':'+v+';'; }
+    const tag=node.tagName; if(tag==='TABLE'||tag==='TR'||tag==='TD'||tag==='TH') s='border-collapse:collapse;'+s;
+    c.setAttribute('style', s);
+  }
+  c.removeAttribute('class');
+  node.childNodes.forEach(ch=>{ const cc=_inlineForEmail(ch); if(cc) c.appendChild(cc); });
+  return c;
+}
+async function copyOfferForEmail(btn){
+  const src=document.getElementById('offerDoc');
+  if(!src){ toast('Nejprve sestavte nabídku (přidejte lisy).'); return; }
+  const orig = btn?btn.textContent:''; if(btn){ btn.textContent='⏳ Připravuji…'; btn.disabled=true; }
+  try{
+    const clone=_inlineForEmail(src);
+    // případné obrázky (logo apod.) → data URI, ať se zobrazí i bez přihlášení
+    const imgs=[...clone.querySelectorAll('img')];
+    await Promise.all(imgs.map(async img=>{
+      try{
+        const r=await fetch(img.getAttribute('src')); const b=await r.blob();
+        img.setAttribute('src', await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b);}));
+        img.style.maxWidth='100%'; img.style.height='auto';
+      }catch(e){ img.remove(); }
+    }));
+    const html='<div style="font-family:Arial,Helvetica,sans-serif;color:#1a1c1e">'+clone.innerHTML+'</div>';
+    let plain=''; try{ plain=offerSummaryText(); }catch(e){}
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html': new Blob([html], {type:'text/html'}),
+      'text/plain': new Blob([plain], {type:'text/plain'})
+    })]);
+    try{ saveToHistory('Kopie'); }catch(e){}
+    try{ auditAction('kopie-emailu', (STATE.client&&STATE.client.company||'')); }catch(e){}
+    toast('Nabídka zkopírována ✓ — v Gmailu vložte přes Ctrl+V (Cmd+V).');
+  }catch(e){
+    toast('Kopírování se nezdařilo: '+((e&&e.message)||e)+'. Zkuste PDF přílohu.');
+  }finally{ if(btn){ btn.textContent=orig; btn.disabled=false; } }
 }
 function offerDocHTML(sel){
   const cl=STATE.client;
