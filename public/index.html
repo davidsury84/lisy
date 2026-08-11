@@ -3431,10 +3431,10 @@ function renderOffer(){
     <div class="offer-bar">
       <span class="lbl">${isZentex()?'Stroje':'Lisy'} v nabídce:</span>
       <div class="chips">${chipRow}</div>
-      <div style="margin-left:auto;display:flex;gap:9px">
+      <div style="margin-left:auto;display:flex;gap:9px;flex-wrap:wrap;justify-content:flex-end">
         <button class="btn" id="offerSaveBtn">${I.save} Uložit do historie</button>
         <button class="btn" id="offerExcelBtn">${I.xls} Excel</button>
-        <button class="btn" id="offerCopyBtn">📋 Kopírovat pro e-mail</button>
+        <button class="btn gold" id="offerCopyBtn">📋 Kopírovat pro e-mail</button>
         <button class="btn" id="offerMailBtn">${I.mail} Odeslat</button>
         <button class="btn gold" id="printOfferBtn">${I.print} PDF / Tisk</button>
       </div>
