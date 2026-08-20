@@ -2500,6 +2500,7 @@ function heroHTML(){
           <button data-m="lease" class="${isLease()?'on':''}">${I.bolt} Leasing</button>
           <button data-m="sale" class="${sale?'on':''}">Prodej${zx?' stroje':' lisu'}</button>
         </div>
+        ${zx?`<div id="kurzNote" style="font-size:11px;color:var(--muted);margin-top:7px">${GP.kurz&&GP.kurzDate?('Ceny přepočteny kurzem ČNB '+String(GP.kurz).replace('.',',')+' Kč/€ ('+GP.kurzDate+')'):'Načítám aktuální kurz ČNB…'}</div>`:''}
       </div>
 
       ${zx ? `
@@ -2546,8 +2547,13 @@ function heroHTML(){
       ${sale ? `
       <div class="field" style="margin-top:20px">
         <label>Marže obchodníka (přirážka k nákupní ceně)</label>
-        <div class="bignum"><span class="v" id="marzeVal">${Math.round(GP.marze*100)}</span><span class="u">%</span></div>
-        <input type="range" id="marzeRange" min="0" max="80" step="1" value="${Math.round(GP.marze*100)}">
+        <div style="display:flex;align-items:center;gap:10px;margin:8px 0 12px">
+          <input type="number" id="marzeInput" min="0" max="300" step="1" value="${Math.round(GP.marze*100)}"
+            style="width:96px;font-size:26px;font-weight:800;font-family:var(--disp,inherit);padding:6px 10px;border:1px solid var(--line2);border-radius:10px;text-align:center;background:#fff;color:var(--ink)">
+          <span style="font-size:20px;font-weight:700;color:var(--muted)">%</span>
+          <button class="btn gold" type="button" id="marzeApply" style="margin-left:4px">Použít</button>
+        </div>
+        <input type="range" id="marzeRange" min="0" max="80" step="1" value="${Math.min(Math.round(GP.marze*100),80)}">
         <div class="range-scale"><span>0 %</span><span>40 %</span><span>80 %</span></div>
       </div>` : `
       <div class="field" style="margin-top:20px">
@@ -2754,9 +2760,19 @@ function bindHero(){
     refreshHeroDynamic(); refreshActivePanel();
   };
   bindSelectControl();
-  // marže (jen v režimu prodej)
+  // marže (jen v režimu prodej): posuvník + číselné pole + tlačítko Použít, vzájemně synchronní
   const mr=document.getElementById('marzeRange');
-  if(mr) mr.oninput=()=>{ GP.marze=parseInt(mr.value)/100; document.getElementById('marzeVal').textContent=mr.value; refreshHeroDynamic(); refreshActivePanel(); };
+  const mi=document.getElementById('marzeInput');
+  const applyMarze=(val)=>{
+    let v=parseInt(val,10); if(isNaN(v)||v<0) v=0; if(v>300) v=300;
+    GP.marze=v/100;
+    if(mi) mi.value=v; if(mr) mr.value=Math.min(v,80);
+    refreshHeroDynamic(); refreshActivePanel();
+  };
+  if(mr) mr.oninput=()=>applyMarze(mr.value);
+  if(mi){ mi.onchange=()=>applyMarze(mi.value); mi.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyMarze(mi.value); mi.blur(); } }; }
+  const mApply=document.getElementById('marzeApply');
+  if(mApply) mApply.onclick=()=>{ applyMarze(mi?mi.value:(mr?mr.value:0)); toast('Marže nastavena na '+Math.round(GP.marze*100)+' %'); };
   // doba (jen v režimu pronájem)
   bindTermControl();
   const termSeg=document.getElementById('termSeg');
@@ -7643,6 +7659,26 @@ function refreshAuthUI(){
 
 /* ---------- START ---------- */
 // Inicializační načtení historie ze serveru pokud jsme přihlášeni
+/* Aktuální kurz ČNB → přepočet nákupních cen Zentexu (EUR × kurz, zaokrouhleno na 100 Kč). */
+function updateKurzNote(){
+  const el=document.getElementById('kurzNote');
+  if(el) el.textContent = (GP.kurz&&GP.kurzDate)
+    ? ('Ceny přepočteny aktuálním kurzem ČNB '+String(GP.kurz).replace('.',',')+' Kč/€ ('+GP.kurzDate+')')
+    : 'Aktuální kurz ČNB se nepodařilo načíst — použit kurz '+String(GP.kurz).replace('.',',')+' Kč/€.';
+}
+async function loadKurz(){
+  try{
+    const r=await fetch('/api/kurz'); const d=await r.json();
+    if(d && d.eur && d.eur>15 && d.eur<40){
+      GP.kurz=d.eur; GP.kurzDate=d.date||'';
+      COMPACTORS.forEach(p=>{ if(p.eur) p.nakup=Math.round(p.eur*d.eur/100)*100; });
+      try{ refreshHeroDynamic(); }catch(e){}
+      try{ refreshActivePanel(); }catch(e){}
+    }
+  }catch(e){}
+  updateKurzNote();
+}
+loadKurz();
 // Vždy ověř session (cookie ze SSO i localStorage token). Když je platná, načti sdílenou historii + admin UI.
 Auth.refreshMe().then(u=>{
   if(u){ History.loadFromServer().then(()=>{ updateCounts(); if(STATE.activeTab==='history')renderHistory(); }); }

@@ -21,9 +21,37 @@ function getEmbeddedHtml(){
 }
 
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+
+/* ---------- Kurz EUR/CZK z ČNB (denní kurz), cache 1h ---------- */
+let _kurzCache = null; // { eur, date, ts }
+function fetchKurzEUR() {
+  return new Promise((resolve) => {
+    if (_kurzCache && (Date.now() - _kurzCache.ts < 3600 * 1000)) return resolve(_kurzCache);
+    const url = 'https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt';
+    const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0 ELKOPLAST-kalkulator' } }, (res) => {
+      if (res.statusCode !== 200) { res.resume(); return resolve(_kurzCache); }
+      let d = ''; res.setEncoding('utf8'); res.on('data', c => d += c); res.on('end', () => {
+        try {
+          const lines = d.trim().split('\n');
+          const date = (lines[0] || '').split(' ')[0] || '';
+          let eur = null;
+          for (const ln of lines) {
+            const p = ln.split('|');
+            if (p.length >= 5 && p[3] === 'EUR') { const amount = parseFloat((p[2] || '1').replace(',', '.')) || 1; const rate = parseFloat((p[4] || '').replace(',', '.')); if (rate) eur = rate / amount; break; }
+          }
+          if (eur) { _kurzCache = { eur: Math.round(eur * 1000) / 1000, date, ts: Date.now() }; resolve(_kurzCache); }
+          else resolve(_kurzCache);
+        } catch (e) { resolve(_kurzCache); }
+      });
+    });
+    req.on('error', () => resolve(_kurzCache));
+    req.setTimeout(8000, () => { req.destroy(); resolve(_kurzCache); });
+  });
+}
 
 const PORT = process.env.PORT || 3000;
 
@@ -447,6 +475,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && urlPath === '/api/logout') return await handleLogout(req, res);
       if (req.method === 'GET' && urlPath === '/api/me') return await handleMe(req, res);
       if (req.method === 'POST' && urlPath === '/api/sso') return await handleSso(req, res);
+      if (req.method === 'GET' && urlPath === '/api/kurz') { const k = await fetchKurzEUR(); return sendJSON(res, 200, k || { eur: null }); }
       if (urlPath === '/api/audit') return await handleAudit(req, res);
       if (urlPath.startsWith('/api/leads')) return await handleLeads(req, res, urlPath);
       if (urlPath.startsWith('/api/items')) return await handleItems(req, res, urlPath);
