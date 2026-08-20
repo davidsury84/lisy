@@ -3172,11 +3172,12 @@ function renderParams(){
     <div class="note-box">${I.info}<span>Editovatelné jsou globální parametry, ceník a jednorázové položky. <b>Měsíční pronájem</b> = nastavená sazba (${pct(GP.najemProc)}) × <b>${najemZakladLabel()} cena</b> + zvolený servis ÷ 12. <b>Jednorázové položky</b> (doprava, instalace, zaškolení) se účtují zvlášť. <b>Prodejní cena</b> = nákupní × (1 + marže).</span></div>
 
     <div class="param-toolbar" style="display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 8px">
+      ${(Auth.user()&&Auth.user().admin)?`<button class="btn gold" id="settingsSaveBtn">${I.save} Uložit změny (platí pro všechny)</button>`:''}
       <button class="btn" id="bulkBtn">${I.bolt} Hromadná úprava cen</button>
       <button class="btn" id="csvExpBtn">${I.xls} Export CSV (ceník)</button>
       <button class="btn" id="csvImpBtn">${I.up||I.save} Import CSV (ceník)</button>
       <span style="flex:1"></span>
-      <span style="font-size:11.5px;color:var(--muted);align-self:center">CSV otevřete v Excelu, upravte ceny a nahrajte zpět</span>
+      <span id="settingsSavedNote" style="font-size:11.5px;color:var(--muted);align-self:center">${(Auth.user()&&Auth.user().admin)?'Změny uložíte tlačítkem vlevo — načtou se všem.':'Změny platí jen dočasně; uložit napořád může správce.'}</span>
     </div>
 
     <div class="sec-title">Globální parametry</div>
@@ -3223,6 +3224,7 @@ function renderParams(){
   const bulk=document.getElementById('bulkBtn'); if(bulk)bulk.onclick=openBulkUpdate;
   const csvE=document.getElementById('csvExpBtn'); if(csvE)csvE.onclick=exportPriceCSV;
   const csvI=document.getElementById('csvImpBtn'); if(csvI)csvI.onclick=importPriceCSV;
+  const setSave=document.getElementById('settingsSaveBtn'); if(setSave)setSave.onclick=()=>saveSettings(setSave);
 }
 function recalcParamsTable(){
   PRESSES.forEach((p,i)=>{
@@ -7678,7 +7680,44 @@ async function loadKurz(){
   }catch(e){}
   updateKurzNote();
 }
-loadKurz();
+/* Perzistentní parametry/ceník ze serveru (uložené správcem, platí pro všechny). nakup Zentexu řídí kurz ČNB. */
+async function loadSettings(){
+  try{
+    const r=await fetch('/api/settings'); const d=await r.json();
+    if(d && typeof d==='object'){
+      if(d.gp) Object.keys(d.gp).forEach(k=>{ if(k!=='kurz' && typeof d.gp[k]==='number') GP[k]=d.gp[k]; });
+      if(d.prices){
+        [...PRESSES, ...COMPACTORS].forEach(p=>{
+          const o=d.prices[p.id]; if(!o) return;
+          ['doprava','sEl','sBz','sKo','minT','maxT','oil'].forEach(f=>{ if(o[f]!=null) p[f]=o[f]; });
+          if(!p.eur && o.nakup!=null) p.nakup=o.nakup;   // Bramidan (bez EUR) přebírá uložený nákup; Zentex řídí kurz
+        });
+      }
+      if(Array.isArray(d.oneTime) && d.oneTime.length && typeof ONE_TIME!=='undefined' && Array.isArray(ONE_TIME)){
+        ONE_TIME.length=0; d.oneTime.forEach(x=>ONE_TIME.push(x));
+      }
+      try{ refreshHeroDynamic(); }catch(e){}
+      try{ refreshActivePanel(); }catch(e){}
+    }
+  }catch(e){}
+}
+async function saveSettings(btn){
+  const orig=btn?btn.textContent:''; if(btn){ btn.textContent='⏳ Ukládám…'; btn.disabled=true; }
+  try{
+    const gp={}; Object.keys(GP).forEach(k=>{ if(k!=='kurz' && typeof GP[k]==='number') gp[k]=GP[k]; });
+    const prices={};
+    [...PRESSES, ...COMPACTORS].forEach(p=>{ const o={doprava:p.doprava,sEl:p.sEl,sBz:p.sBz,sKo:p.sKo,minT:p.minT,maxT:p.maxT,oil:p.oil}; if(!p.eur) o.nakup=p.nakup; prices[p.id]=o; });
+    const oneTime = (typeof ONE_TIME!=='undefined' && Array.isArray(ONE_TIME)) ? ONE_TIME : [];
+    const r=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gp,prices,oneTime})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||('Chyba '+r.status));
+    const note=document.getElementById('settingsSavedNote'); if(note) note.textContent='✓ Uloženo — načte se všem uživatelům.';
+    try{ auditAction('settings-save'); }catch(e){}
+    toast('Parametry uloženy pro všechny ✓');
+  }catch(e){ toast('Uložení selhalo: '+((e&&e.message)||e)); }
+  finally{ if(btn){ btn.textContent=orig; btn.disabled=false; } }
+}
+(async function initPricing(){ try{ await loadKurz(); }catch(e){} try{ await loadSettings(); }catch(e){} })();
 // Vždy ověř session (cookie ze SSO i localStorage token). Když je platná, načti sdílenou historii + admin UI.
 Auth.refreshMe().then(u=>{
   if(u){ History.loadFromServer().then(()=>{ updateCounts(); if(STATE.activeTab==='history')renderHistory(); }); }

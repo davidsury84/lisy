@@ -319,6 +319,28 @@ async function handleSso(req, res) {
     sendJSON(res, 200, result);
   } catch (e) { sendJSON(res, 400, { error: e.message }); }
 }
+/* Nastavení / ceník — perzistentní parametry a ceny (platí pro všechny). Čte kdokoli, ukládá jen admin. */
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+async function handleSettings(req, res) {
+  if (req.method === 'GET') {
+    let data = {};
+    try { data = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8')); } catch (_) {}
+    return sendJSON(res, 200, data || {});
+  }
+  if (req.method === 'POST') {
+    const db = readDB();
+    const user = getUserFromAuth(req, db);
+    if (!user) return sendJSON(res, 401, { error: 'Neautorizováno' });
+    if (!isAdminEmail(user.email)) return sendJSON(res, 403, { error: 'Uložit parametry pro všechny může jen správce.' });
+    const body = await readBody(req).catch(() => null);
+    if (!body || typeof body !== 'object') return sendJSON(res, 400, { error: 'Neplatná data' });
+    const rec = { gp: body.gp || {}, prices: body.prices || {}, oneTime: Array.isArray(body.oneTime) ? body.oneTime : [], savedBy: user.email, savedAt: new Date().toISOString() };
+    try { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(rec, null, 2)); } catch (e) { return sendJSON(res, 500, { error: 'Uložení selhalo: ' + e.message }); }
+    auditLog(req, user.email, 'settings-save', 'gp:' + Object.keys(rec.gp).length + ' ceny:' + Object.keys(rec.prices).length);
+    return sendJSON(res, 200, { ok: true, savedAt: rec.savedAt });
+  }
+  return sendJSON(res, 405, { error: 'Metoda nepodporována' });
+}
 /* Audit: klientem hlášené akce (nabídka, PDF, technický list, ...) + admin přehled */
 async function handleAudit(req, res) {
   const db = readDB();
@@ -476,6 +498,7 @@ const server = http.createServer(async (req, res) => {
       if (req.method === 'GET' && urlPath === '/api/me') return await handleMe(req, res);
       if (req.method === 'POST' && urlPath === '/api/sso') return await handleSso(req, res);
       if (req.method === 'GET' && urlPath === '/api/kurz') { const k = await fetchKurzEUR(); return sendJSON(res, 200, k || { eur: null }); }
+      if (urlPath === '/api/settings') return await handleSettings(req, res);
       if (urlPath === '/api/audit') return await handleAudit(req, res);
       if (urlPath.startsWith('/api/leads')) return await handleLeads(req, res, urlPath);
       if (urlPath.startsWith('/api/items')) return await handleItems(req, res, urlPath);
