@@ -5458,9 +5458,9 @@ function offerDocHTML(sel){
     ${(function(){
       var zs = sel.filter(function(p){return prodIsZentex(p);});
       if(!zs.length) return '';
-      return '<div class="offer-tech" style="page-break-before:always">'
-        + '<div style="font-family:Sora,sans-serif;font-size:17px;font-weight:800;color:#1a1c1e;margin:6px 0 16px;padding-bottom:8px;border-bottom:2px solid #ffce1f">Technické listy nabízených strojů</div>'
-        + zs.map(function(p,i){ return '<div style="page-break-inside:avoid;margin-bottom:20px">'+buildTechSheetHTML(p)+'</div>'; }).join('')
+      return '<div class="offer-tech">'
+        + '<div style="font-family:Sora,sans-serif;font-size:17px;font-weight:800;color:#1a1c1e;margin:22px 0 16px;padding-bottom:8px;border-bottom:2px solid #ffce1f;page-break-after:avoid;break-after:avoid">Technické listy nabízených strojů</div>'
+        + zs.map(function(p,i){ return '<div style="page-break-inside:avoid;break-inside:avoid;margin-bottom:20px">'+buildTechSheetHTML(p)+'</div>'; }).join('')
         + '</div>';
     })()}
   </div>`;
