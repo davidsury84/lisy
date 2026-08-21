@@ -5460,7 +5460,7 @@ function offerDocHTML(sel){
       if(!zs.length) return '';
       return '<div class="offer-tech" style="page-break-before:always">'
         + '<div style="font-family:Sora,sans-serif;font-size:17px;font-weight:800;color:#1a1c1e;margin:6px 0 16px;padding-bottom:8px;border-bottom:2px solid #ffce1f">Technické listy nabízených strojů</div>'
-        + zs.map(function(p,i){ return '<div style="'+(i>0?'page-break-before:always;':'')+'page-break-inside:avoid;margin-bottom:20px">'+buildTechSheetHTML(p)+'</div>'; }).join('')
+        + zs.map(function(p,i){ return '<div style="page-break-inside:avoid;margin-bottom:20px">'+buildTechSheetHTML(p)+'</div>'; }).join('')
         + '</div>';
     })()}
   </div>`;
@@ -7176,7 +7176,7 @@ function offerSummaryText(){
       if(sale){
         sProd+=c.prodejni; sServ+=c.servisRok;
         L.push('  • '+nm+' ('+spec+') — prodejní cena '+num(c.prodejni)+' Kč bez DPH ('+num(c.prodejniDph)+' s DPH)');
-        L.push('      '+(c.servisRok>0?servLabel()+' servis '+num(c.servisRok)+' Kč/rok · ':'')+'jednorázově '+num(c.oneTimeTotal)+' Kč (vše bez DPH)');
+        L.push('      '+(c.servisRok>0?servLabel()+' servis '+num(c.servisRok)+' Kč/rok · ':'')+'jednorázově (doprava, instalace, školení) '+num(c.oneTimeTotal)+' Kč bez DPH');
       } else {
         const per=c.indef?c.celkemRokVcServ:c.celkemObdobi;
         sM+=c.celkemMesicVcServ; sP+=per;
@@ -7208,11 +7208,11 @@ function offerSummaryText(){
     if(sel.length>1){   // souhrn jen u víc modelů; u jednoho by jen opakoval řádek výše
       L.push('');
       if(sale){
-        L.push('  CELKEM bez DPH: prodej '+num(sProd)+' Kč · servis '+num(sServ)+' Kč/rok · jednorázově '+num(sO)+' Kč');
-        L.push('  CELKEM s DPH ('+dphPct+'): prodej '+num(Math.round(sProd*(1+GP.dph)))+' Kč · servis '+num(Math.round(sServ*(1+GP.dph)))+' Kč/rok · jednorázově '+num(Math.round(sO*(1+GP.dph)))+' Kč');
+        L.push('  CELKEM bez DPH: prodej '+num(sProd)+' Kč · servis '+num(sServ)+' Kč/rok · jednorázově (doprava, instalace, školení) '+num(sO)+' Kč');
+        L.push('  CELKEM s DPH ('+dphPct+'): prodej '+num(Math.round(sProd*(1+GP.dph)))+' Kč · servis '+num(Math.round(sServ*(1+GP.dph)))+' Kč/rok · jednorázově (doprava, instalace, školení) '+num(Math.round(sO*(1+GP.dph)))+' Kč');
       } else {
-        L.push('  CELKEM bez DPH: '+num(sM)+' Kč/měs · jednorázově '+num(sO)+' Kč');
-        L.push('  CELKEM s DPH ('+dphPct+'): '+num(Math.round(sM*(1+GP.dph)))+' Kč/měs · jednorázově '+num(Math.round(sO*(1+GP.dph)))+' Kč');
+        L.push('  CELKEM bez DPH: '+num(sM)+' Kč/měs · jednorázově (doprava, instalace, školení) '+num(sO)+' Kč');
+        L.push('  CELKEM s DPH ('+dphPct+'): '+num(Math.round(sM*(1+GP.dph)))+' Kč/měs · jednorázově (doprava, instalace, školení) '+num(Math.round(sO*(1+GP.dph)))+' Kč');
       }
     }
   } else {
