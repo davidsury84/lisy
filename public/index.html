@@ -2434,8 +2434,8 @@ function render(){
     <div class="top-actions">
       <button class="btn" id="authBtn"><span class="auth-avatar">${I.user}</span> <span id="authLabel">Účet</span></button>
       <button class="btn" id="btnProfile">${I.user} <span id="profileLabel">${profileBtnLabel()}</span></button>
-      <button class="btn" id="btnExport">${I.save} Uložit parametry</button>
-      <button class="btn" id="btnImport">${I.upload} Načíst</button>
+      <button class="btn gold" id="btnExport">${I.save} Uložit nabídku</button>
+      <button class="btn" id="btnImport">${I.upload} Načíst zálohu</button>
       <button class="btn" id="btnExcel">${I.xls} Export Excel</button>
       <button class="btn" id="btnMail">${I.mail} Odeslat</button>
       <button class="btn gold" id="btnPrint">${I.print} Export PDF</button>
@@ -6462,8 +6462,8 @@ function renderManual(){
         <tbody>
           <tr><td><b>Účet</b></td><td>Přihlášení do sdíleného úložiště (Railway). Umožňuje sdílení parametrů mezi obchodníky.</td></tr>
           <tr><td><b>Obchodník</b></td><td>Výběr aktivního obchodníka. Jeho jméno, e-mail a telefon se automaticky vloží do PDF nabídky a smlouvy.</td></tr>
-          <tr><td><b>Uložit parametry</b></td><td>Uloží aktuální stav (vstupy, klienta, vybrané lisy) jako JSON soubor.</td></tr>
-          <tr><td><b>Načíst</b></td><td>Načte dříve uložený JSON soubor.</td></tr>
+          <tr><td><b>Uložit nabídku</b></td><td>Zapíše aktuální nabídku (klient + vybrané lisy + ceny) do <b>Historie nabídek</b>. Přihlášenému se ukládá na server (sdílené), jinak lokálně.</td></tr>
+          <tr><td><b>Načíst zálohu</b></td><td>Načte dříve uložený JSON soubor se stavem (starší zálohy). Ceník/parametry se dnes ukládají v záložce „Parametry & ceník".</td></tr>
           <tr><td><b>Export Excel</b></td><td>Stáhne Excel s kompletní kalkulací (XLSX).</td></tr>
           <tr><td><b>Odeslat</b></td><td>Otevře e-mailový modul pro odeslání nabídky klientovi.</td></tr>
           <tr><td><b>Export PDF</b></td><td>Vyvolá tisk nabídky (nativní funkce prohlížeče → uložit jako PDF).</td></tr>
@@ -6908,7 +6908,7 @@ function renderManual(){
       <h2>17. Časté otázky a řešení problémů</h2>
       ${[
         ['Aplikace mi nereaguje, je pomalá', 'Zkontrolujte připojení k internetu. Pokud Railway URL nejede, použijte offline HTML verzi (záložní soubor).'],
-        ['Změnil jsem ceník — jak ho uložím napořád?', 'Klikněte na „Uložit parametry" v horní liště. Stáhne se JSON. Pro nahrání jiným obchodníkům: kontaktujte IT, aby aktualizovali databázi v aplikaci.'],
+        ['Změnil jsem ceník — jak ho uložím napořád?', 'V záložce „Parametry & ceník" klikněte na „Uložit změny (platí pro všechny)". Uloží se na server a načtou se všem uživatelům (jen správce). Nabídku samotnou uložíte tlačítkem „Uložit nabídku" do Historie.'],
         ['Klient chce sazbu pronájmu 2,5 % místo 2,8 %', 'Tato možnost byla v aplikaci zrušena. Pokud potřebujete jinou sazbu, použijte sleva za závazek (5+ let). Pro mimořádné případy konzultujte s vedením obchodu.'],
         ['PDF se mi vytiskne s nesprávným formátováním', 'Použijte funkci „Export PDF" v aplikaci, ne ručně Ctrl+P z prohlížeče. Aplikace má speciální print stylesheet.'],
         ['Klient chce vidět splátkový kalendář leasingu', 'V záložce „Leasing (anuita)" vygenerujte smlouvu. Splátkový kalendář je automaticky v Příloze č. 2.'],
@@ -7314,11 +7314,12 @@ function openEmailModal(){
 
 /* ---------- TOP AKCE: export / import / Excel / e-mail / PDF ---------- */
 function bindTopActions(){
+  // „Uložit nabídku" — zapíše aktuální nabídku do Historie nabídek (server, pokud přihlášen; jinak lokálně)
   document.getElementById('btnExport').onclick=()=>{
-    const data={GP,ONE_TIME,PRESSES:PRESSES.map(p=>({id:p.id,nakup:p.nakup,doprava:p.doprava,sEl:p.sEl,sBz:p.sBz,sKo:p.sKo,minT:p.minT,maxT:p.maxT,kw:p.kw,oil:p.oil})),COMPACTORS:COMPACTORS.map(p=>({id:p.id,nakup:p.nakup,doprava:p.doprava,sEl:p.sEl,sBz:p.sBz,sKo:p.sKo,minT:p.minT,maxT:p.maxT,oil:p.oil})),STATE:{tonsPerMonth:STATE.tonsPerMonth,mode:STATE.mode,selectMode:STATE.selectMode,baleChoice:STATE.baleChoice,feedChoice:STATE.feedChoice,termMode:STATE.termMode,years:STATE.years,months:STATE.months,serviceMode:STATE.serviceMode,client:STATE.client,selectedForOffer:STATE.selectedForOffer,product:STATE.product}};
-    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kalkulace-lisy-parametry.json';a.click();
-    toast('Parametry uloženy');
+    if(!STATE.selectedForOffer || !STATE.selectedForOffer.length){ toast('Nejprve přidejte lisy do nabídky.'); return; }
+    const e=saveToHistory('ruční');
+    if(e){ toast('Nabídka uložena do historie ✓'); updateCounts(); }
+    else { toast('Nabídku se nepodařilo uložit.'); }
   };
   document.getElementById('btnImport').onclick=()=>document.getElementById('fileImport').click();
   document.getElementById('fileImport').onchange=(e)=>{
