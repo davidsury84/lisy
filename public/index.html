@@ -2392,6 +2392,7 @@ const STATE = {
   svozyPerMonth: 1,               // cílový počet svozů za měsíc (klient chce co nejméně)
   carrierType: "Hákový (R)",      // primární filtr vozového parku (Hákový/Řetězový)
   zUseCase: 'auto',               // doporučení dle použití: auto(top12) | all | standard | mr | wet | cool | wood | expand | split | pto | transfer | fastfood
+  paramProduct: 'bramidan',       // přepínač řady v záložce Parametry & ceník: bramidan | zentex
   termMode: "years", years: 3, months: 6, serviceMode: "kompl",  client: { name:"", company:"", waste:"Lepenka + měkký plast", contact:"", date:new Date().toLocaleDateString('cs-CZ'), ico:"", dic:"", sidlo:"", fakturEmail:"", mistoPlneni:"", datumPocatku:"", vypovedniLhuta:"2 měsíce", serialNumbers:{}, yearsMade:{}, trialPeriod:false, zaruka:"24 měsíců" },
   selectedForOffer: [], activeTab: "compare"
 };
@@ -3111,10 +3112,11 @@ function renderTable(){
 /* ---------- PANEL: PARAMETRY & CENÍK (editor) ---------- */
 function renderParams(){
   const el=document.getElementById('panel-params');
+  const pp = STATE.paramProduct || 'bramidan';   // přepínač řady v parametrech
+  const ppZx = pp==='zentex';
+  const marzeKey = ppZx ? 'marzeZentex' : 'marzeBramidan';
   const gp=[
     ['najemProc','Měsíční sazba pronájmu (z nákupní)','%',v=>v*100,v=>v/100],
-    ['marzeBramidan','Marže pro prodej — Bramidan','%',v=>v*100,v=>v/100],
-    ['marzeZentex','Marže pro prodej — Zentex','%',v=>v*100,v=>v/100],
     ['inflace','Inflační koeficient','%',v=>v*100,v=>v/100],
     ['slevaMin','Sleva — minimum (na dolní hranici)','%',v=>v*100,v=>v/100],
     ['slevaMax','Sleva — maximum (na horní hranici)','%',v=>v*100,v=>v/100],
@@ -3187,20 +3189,33 @@ function renderParams(){
       <span id="settingsSavedNote" style="font-size:11.5px;color:var(--muted);align-self:center">Uloží parametry a ceník na server — načtou se všem uživatelům.</span>
     </div>
 
-    <div class="sec-title">Globální parametry</div>
-    <div class="gp-grid">${gpHTML}</div>
+    <div class="sec-title">Nastavení řady — každá řada má vlastní marži a ceník</div>
+    <div class="seg seg-mode" id="paramProdSeg" style="max-width:440px;margin-bottom:14px">
+      <button data-pp="bramidan" class="${!ppZx?'on':''}">Lisy Bramidan</button>
+      <button data-pp="zentex" class="${ppZx?'on':''}">Mobilní lisy Zentex</button>
+    </div>
 
+    <div class="gp-grid"><div class="gp">
+      <label>Marže pro prodej — ${ppZx?'Zentex':'Bramidan'}</label>
+      <div class="iw"><input type="number" step="any" data-gp="${marzeKey}" value="${Math.round(GP[marzeKey]*100)}"><span class="sfx">%</span></div>
+    </div></div>
+
+    ${ppZx ? `
+    <div class="sec-title">Ceník Zentex — mobilní lisovací stroje (Kč) <span style="font-size:11.5px;font-weight:400;color:var(--muted)">· nákupní cena Kč se řídí kurzem ČNB (EUR × kurz)</span></div>
+    <div class="escroll"><table class="edit"><thead><tr>
+      <th>Model</th><th>EUR (ceník)</th><th>Nákupní cena Kč</th><th>Doprava (jednoráz.)</th><th>Prodejní cena</th><th>Nájem/měs (${pct(GP.najemProc)} z nákupní)</th>
+      <th>Servis elektro</th><th>Servis bezp.</th><th>Kompletní servis</th><th>Min t/měs</th><th>Max t/měs</th><th>Olej (L)</th>
+    </tr></thead><tbody>${rowsZx}</tbody></table></div>
+    ` : `
     <div class="sec-title">Ceník Bramidan — vertikální lisy (Kč)</div>
     <div class="escroll"><table class="edit"><thead><tr>
       <th>Model</th><th>Nákupní cena</th><th>Doprava (jednoráz.)</th><th>Prodejní cena</th><th>Nájem/měs (${pct(GP.najemProc)} z nákupní)</th>
       <th>Servis elektro</th><th>Servis bezp.</th><th>Kompletní servis</th><th>Min t/měs</th><th>Max t/měs</th><th>Olej (L)</th>
     </tr></thead><tbody>${rowsBr}</tbody></table></div>
+    `}
 
-    <div class="sec-title">Ceník Zentex — mobilní lisovací stroje (Kč)</div>
-    <div class="escroll"><table class="edit"><thead><tr>
-      <th>Model</th><th>EUR (ceník)</th><th>Nákupní cena Kč</th><th>Doprava (jednoráz.)</th><th>Prodejní cena</th><th>Nájem/měs (${pct(GP.najemProc)} z nákupní)</th>
-      <th>Servis elektro</th><th>Servis bezp.</th><th>Kompletní servis</th><th>Min t/měs</th><th>Max t/měs</th><th>Olej (L)</th>
-    </tr></thead><tbody>${rowsZx}</tbody></table></div>
+    <div class="sec-title" style="margin-top:24px">Společné ekonomické parametry (platí pro obě řady)</div>
+    <div class="gp-grid">${gpHTML}</div>
 
     <div class="sec-title">Jednorázové položky (účtováno zvlášť)</div>
     <div class="escroll"><table class="edit"><thead><tr>
@@ -3232,6 +3247,8 @@ function renderParams(){
   const csvE=document.getElementById('csvExpBtn'); if(csvE)csvE.onclick=exportPriceCSV;
   const csvI=document.getElementById('csvImpBtn'); if(csvI)csvI.onclick=importPriceCSV;
   const setSave=document.getElementById('settingsSaveBtn'); if(setSave)setSave.onclick=()=>saveSettings(setSave);
+  const ppSeg=document.getElementById('paramProdSeg');
+  if(ppSeg) ppSeg.querySelectorAll('button').forEach(b=>b.onclick=()=>{ STATE.paramProduct=b.dataset.pp; renderParams(); });
 }
 function recalcParamsTable(){
   PRESSES.forEach((p,i)=>{
