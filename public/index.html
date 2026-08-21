@@ -884,7 +884,9 @@ footer.foot a:hover{color:var(--gold)}
 const GP = {
   najemProc: 0.0278,           // 2,8 % = standardní sazba (návratnost 36 měs)
   najemProcLT: 0.025,          // 2,5 % = dlouhodobý vztah (od 5 let)
-  marze: 0.30, inflace: 0.00, odpis: 0.125,
+  marze: 0.30,                 // legacy/fallback (viz marzeBramidan / marzeZentex)
+  marzeBramidan: 0.30, marzeZentex: 0.30,   // marže odděleně pro každou řadu
+  inflace: 0.00, odpis: 0.125,
   kurz: 25.0, minRoky: 4,
   slevaOd: 5, slevaDo: 10, slevaMin: 0.07, slevaMax: 0.15,
   dph: 0.21,
@@ -898,6 +900,10 @@ const GP = {
   leaseN: 60,                  // Doba leasingu v měsících (default 60)
   leaseFVMode: 'new'           // 'new' = lineární 30 % @ N=60 / 'old' = konzervativní 28 % @ N=60
 };
+/* Marže odděleně pro Bramidan a Zentex (fallback na legacy GP.marze). */
+function prodMarze(pz){ const m = pz ? GP.marzeZentex : GP.marzeBramidan; return (m!=null) ? m : GP.marze; }
+function activeMarze(){ return prodMarze(isZentex()); }
+function setActiveMarze(v){ if(isZentex()) GP.marzeZentex=v; else GP.marzeBramidan=v; }
 
 /* Jednorázové položky (instalace, zaškolení…) — účtují se zvlášť, ne v měsíční sazbě.
    Doprava se přidává automaticky z dat lisu (p.doprava). */
@@ -1873,7 +1879,7 @@ function calc(p, serviceMode){
   const months = termMonthsCount();
   const years = months/12;
   const nakupInfl = p.nakup*(1+GP.inflace);
-  const prodejni  = nakupInfl*(1+GP.marze);             // prodejní cena stroje (bez jednorázových)
+  const prodejni  = nakupInfl*(1+prodMarze(prodIsZentex(p)));  // prodejní cena stroje (marže dle řady Bramidan/Zentex)
   const servisRok = p.sKo;                              // vždy KOMPLETNÍ servis (ze souboru)
   const sleva = currentSleva();
   // Základ pro výpočet pronájmu: vždy nákupní cena (případně inflačně upravená)
@@ -2546,14 +2552,14 @@ function heroHTML(){
 
       ${sale ? `
       <div class="field" style="margin-top:20px">
-        <label>Marže obchodníka (přirážka k nákupní ceně)</label>
+        <label>Marže obchodníka — ${zx?'Zentex':'Bramidan'} (přirážka k nákupní ceně)</label>
         <div style="display:flex;align-items:center;gap:10px;margin:8px 0 12px">
-          <input type="number" id="marzeInput" min="0" max="300" step="1" value="${Math.round(GP.marze*100)}"
+          <input type="number" id="marzeInput" min="0" max="300" step="1" value="${Math.round(activeMarze()*100)}"
             style="width:96px;font-size:26px;font-weight:800;font-family:var(--disp,inherit);padding:6px 10px;border:1px solid var(--line2);border-radius:10px;text-align:center;background:#fff;color:var(--ink)">
           <span style="font-size:20px;font-weight:700;color:var(--muted)">%</span>
           <button class="btn gold" type="button" id="marzeApply" style="margin-left:4px">Použít</button>
         </div>
-        <input type="range" id="marzeRange" min="0" max="80" step="1" value="${Math.min(Math.round(GP.marze*100),80)}">
+        <input type="range" id="marzeRange" min="0" max="80" step="1" value="${Math.min(Math.round(activeMarze()*100),80)}">
         <div class="range-scale"><span>0 %</span><span>40 %</span><span>80 %</span></div>
       </div>` : `
       <div class="field" style="margin-top:20px">
@@ -2765,14 +2771,14 @@ function bindHero(){
   const mi=document.getElementById('marzeInput');
   const applyMarze=(val)=>{
     let v=parseInt(val,10); if(isNaN(v)||v<0) v=0; if(v>300) v=300;
-    GP.marze=v/100;
+    setActiveMarze(v/100);   // uloží do marže aktivní řady (Bramidan/Zentex)
     if(mi) mi.value=v; if(mr) mr.value=Math.min(v,80);
     refreshHeroDynamic(); refreshActivePanel();
   };
   if(mr) mr.oninput=()=>applyMarze(mr.value);
   if(mi){ mi.onchange=()=>applyMarze(mi.value); mi.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); applyMarze(mi.value); mi.blur(); } }; }
   const mApply=document.getElementById('marzeApply');
-  if(mApply) mApply.onclick=()=>{ applyMarze(mi?mi.value:(mr?mr.value:0)); toast('Marže nastavena na '+Math.round(GP.marze*100)+' %'); };
+  if(mApply) mApply.onclick=()=>{ applyMarze(mi?mi.value:(mr?mr.value:0)); toast('Marže '+(isZentex()?'Zentex':'Bramidan')+' nastavena na '+Math.round(activeMarze()*100)+' %'); };
   // doba (jen v režimu pronájem)
   bindTermControl();
   const termSeg=document.getElementById('termSeg');
@@ -2886,7 +2892,7 @@ function pressCard(p,c,best){
         <div class="pp-dph-row">s DPH ${pct(c.dph)}: <b>${num(c.prodejniDph)} Kč</b></div>
         ${c.servisRok>0?`<div class="pp-sub">+ ${servLabel()} servis 1× ročně: <span class="mono">${num(c.servisRok)} Kč</span> <span class="dph-mini">(${num(c.servisRokDph)} s DPH)</span></div>`:`<div class="pp-sub">Bez servisu</div>`}
         <div class="pp-sub">Jednorázově (doprava, instalace, školení): <span class="mono">${num(c.oneTimeTotal)} Kč</span> <span class="dph-mini">(${num(c.oneTimeTotalDph)} s DPH)</span></div>
-        <div class="pp-sub" style="color:var(--muted)">Marže ${pct(GP.marze)} · jednorázové položky zvlášť · všechny ceny <b>bez DPH</b> není-li uvedeno jinak</div>`
+        <div class="pp-sub" style="color:var(--muted)">Marže ${pct(prodMarze(prodIsZentex(p)))} · jednorázové položky zvlášť · všechny ceny <b>bez DPH</b> není-li uvedeno jinak</div>`
     : lease ? `
         <div class="pp-lbl">Měsíční anuita vč. ${servLabel()} servisu <span class="pp-dph-tag">bez DPH</span></div>
         <div class="pp-main">
@@ -3082,7 +3088,7 @@ function renderTable(){
     ['Prodejní cena lisu',o=>'<b>'+num(o.c.prodejni)+' Kč</b>'],
     [servLabel()+' servis / rok',o=>num(o.c.servisRok)+' Kč'],
     ['Jednorázově (doprava, instalace, školení)',o=>num(o.c.oneTimeTotal)+' Kč'],
-    ['Marže obchodníka',o=>pct(GP.marze)],
+    ['Marže obchodníka',o=>pct(prodMarze(prodIsZentex(o.p)))],
   ] : [
     ['sec','Cenová kalkulace — pronájem'],
     ['Nájem stroje / měs ('+pct(GP.najemProc)+' z '+najemZakladLabel()+')',o=>num(o.c.najemMesic)+' Kč'],
@@ -3098,7 +3104,7 @@ function renderTable(){
     return `<tr><td>${r[0]}</td>`+calcs.map((o,i)=>`<td class="${i===minIdx?'best-col':''}">${r[1](o)}</td>`).join('')+`</tr>`;
   }).join('');
   el.innerHTML=`
-    <div class="note-box">${I.info}<span>Srovnání lisů — ${selectionLabel()}, forma: <b>${sale?'prodej':'pronájem'}</b>${sale?', marže '+pct(GP.marze):', doba '+termLabel()}, ${servLabel()} servis. Zvýrazněný sloupec = ${sale?'nejnižší prodejní cena':'nejvýhodnější měsíční cena'}.</span></div>
+    <div class="note-box">${I.info}<span>Srovnání lisů — ${selectionLabel()}, forma: <b>${sale?'prodej':'pronájem'}</b>${sale?', marže '+pct(activeMarze()):', doba '+termLabel()}, ${servLabel()} servis. Zvýrazněný sloupec = ${sale?'nejnižší prodejní cena':'nejvýhodnější měsíční cena'}.</span></div>
     <div class="tscroll"><table class="cmp"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 
@@ -3107,7 +3113,8 @@ function renderParams(){
   const el=document.getElementById('panel-params');
   const gp=[
     ['najemProc','Měsíční sazba pronájmu (z nákupní)','%',v=>v*100,v=>v/100],
-    ['marze','Marže pro prodej (přirážka)','%',v=>v*100,v=>v/100],
+    ['marzeBramidan','Marže pro prodej — Bramidan','%',v=>v*100,v=>v/100],
+    ['marzeZentex','Marže pro prodej — Zentex','%',v=>v*100,v=>v/100],
     ['inflace','Inflační koeficient','%',v=>v*100,v=>v/100],
     ['slevaMin','Sleva — minimum (na dolní hranici)','%',v=>v*100,v=>v/100],
     ['slevaMax','Sleva — maximum (na horní hranici)','%',v=>v*100,v=>v/100],
@@ -3483,14 +3490,14 @@ function saveToHistory(via){
   // Každý EXPORT (PDF / e-mail) se ukládá vždy (na přání — evidence odeslaných nabídek).
   // Ostatní spouštěče (ruční, Excel) dedupují shodný poslední záznam, ať se historie nezaplní.
   const forceSave = (via==='PDF' || via==='E-mail');
-  const sig=JSON.stringify({c:STATE.client.company,m:STATE.mode,p:STATE.product,ids:items.map(i=>i.id),t:termLabel(),mz:GP.marze});
+  const sig=JSON.stringify({c:STATE.client.company,m:STATE.mode,p:STATE.product,ids:items.map(i=>i.id),t:termLabel(),mz:activeMarze()});
   const last=History.all()[0];
   if(!forceSave && last && last.sig===sig){ return last; }
   const entry={
     sig, via, date:new Date().toLocaleString('cs-CZ'),
     product:STATE.product, productLabel:isZentex()?'Zentex':'Bramidan',
     mode:STATE.mode, modeLabel:sale?'Prodej':'Pronájem',
-    term:termLabel(), marze:GP.marze, najemProc:GP.najemProc,
+    term:termLabel(), marze:activeMarze(), najemProc:GP.najemProc,
     selectMode:STATE.selectMode, tons:STATE.tonsPerMonth,
     client:{...STATE.client},
     seller: prof?{name:prof.name,email:prof.email,phone:prof.phone}:null,
@@ -3507,7 +3514,7 @@ function loadFromHistory(id){
   STATE.mode=e.mode||'rent';
   STATE.selectMode='tons';
   if(typeof e.tons==='number') STATE.tonsPerMonth=e.tons;
-  if(typeof e.marze==='number') GP.marze=e.marze;
+  if(typeof e.marze==='number') setActiveMarze(e.marze);
   STATE.client={...STATE.client, ...(e.client||{})};
   STATE.selectedForOffer=(e.items||[]).map(i=>i.id).filter(id=>findProduct(id));
   STATE.activeTab='offer';
@@ -4812,7 +4819,7 @@ function renderROI(){
 
   // Info o vstupech do výpočtu
   const inputInfo = sale
-    ? `Marže <b>${pct(GP.marze)}</b> · prodejní = nákupní × (1 + marže). Zisk = prodejní − nákupní.`
+    ? `Marže <b>${pct(activeMarze())}</b> · prodejní = nákupní × (1 + marže). Zisk = prodejní − nákupní.`
     : `Sazba pronájmu <b>${pct(GP.najemProc)}</b> z <b>${najemZakladLabel()}</b> ceny · doba ${termLabel()} · sleva za závazek ${items[0].r.sleva>0?pct(items[0].r.sleva):'0 %'}. Čistý nájem = sazba × základ × (1 − sleva). Servis je nákladově neutrální.`;
 
   el.innerHTML=`
@@ -4871,7 +4878,7 @@ function renderROI(){
         seller: prof?{name:prof.name,email:prof.email}:null,
         summary: 'Celková investice '+num(sumInvest)+' Kč · NPV '+(items[0]?.r.npv>=0?'+':'')+num(items.reduce((s,o)=>s+(o.r.npv||0),0))+' Kč',
         items: items.map(o=>({id:o.p.id, invest:o.r.invest, monthly:Math.round(o.r.monthlyProfit), BE:o.r.breakMonth, npv:o.r.npv, totalProfit:Math.round(o.r.totalProfit)})),
-        params: { najemProc:GP.najemProc, marze:GP.marze, years:STATE.years, termMode:STATE.termMode, rvPct:GP.rvPct, diskont:GP.diskont }
+        params: { najemProc:GP.najemProc, marze:activeMarze(), years:STATE.years, termMode:STATE.termMode, rvPct:GP.rvPct, diskont:GP.diskont }
       };
       await History.add(entry, 'model');
       updateCounts();
@@ -7043,7 +7050,7 @@ function buildExcelSheets(){
     if(STATE.client.name)o.push([C.b('Kontaktní osoba:'),C.s(STATE.client.name)]);
     if(STATE.client.contact)o.push([C.b('Kontakt:'),C.s(STATE.client.contact)]);
     o.push([C.b('Druh odpadu:'),C.s(STATE.client.waste||'—')]);
-    o.push([C.b('Forma:'),C.s(sale?'Prodej':'Pronájem'),null,C.b(sale?'Marže:':'Doba:'),C.s(sale?pct(GP.marze):termLabel())]);
+    o.push([C.b('Forma:'),C.s(sale?'Prodej':'Pronájem'),null,C.b(sale?'Marže:':'Doba:'),C.s(sale?pct(activeMarze()):termLabel())]);
     if(prof)o.push([C.b('Obchodník:'),C.s((prof.name||'')+(prof.email?' · '+prof.email:'')+(prof.phone?' · '+prof.phone:''))]);
     o.push([]);
     const specOf=p=>prodIsZentex(p)?(p.vol+' m³ · '+p.carrier):(p.force+' t · balík '+p.card+' kg');
@@ -7083,7 +7090,8 @@ function buildExcelSheets(){
   par.push([]);
   par.push([C.h('Parametr'),C.h('Hodnota')]);
   par.push([C.b('Měsíční sazba pronájmu'),C.s(pct(GP.najemProc)+' z '+najemZakladLabel()+' ceny')]);
-  par.push([C.b('Marže pro prodej'),C.s(pct(GP.marze))]);
+  par.push([C.b('Marže pro prodej — Bramidan'),C.s(pct(prodMarze(false)))]);
+  par.push([C.b('Marže pro prodej — Zentex'),C.s(pct(prodMarze(true)))]);
   par.push([C.b('Inflační koeficient'),C.s(pct(GP.inflace))]);
   par.push([C.b('Sleva — rozsah'),C.s(pct(GP.slevaMin)+' – '+pct(GP.slevaMax))]);
   par.push([C.b('Sleva — hranice'),C.s(GP.slevaOd+' – '+GP.slevaDo+' let')]);
