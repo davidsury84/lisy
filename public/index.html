@@ -3172,12 +3172,12 @@ function renderParams(){
     <div class="note-box">${I.info}<span>Editovatelné jsou globální parametry, ceník a jednorázové položky. <b>Měsíční pronájem</b> = nastavená sazba (${pct(GP.najemProc)}) × <b>${najemZakladLabel()} cena</b> + zvolený servis ÷ 12. <b>Jednorázové položky</b> (doprava, instalace, zaškolení) se účtují zvlášť. <b>Prodejní cena</b> = nákupní × (1 + marže).</span></div>
 
     <div class="param-toolbar" style="display:flex;gap:9px;flex-wrap:wrap;margin:14px 0 8px">
-      ${(Auth.user()&&Auth.user().admin)?`<button class="btn gold" id="settingsSaveBtn">${I.save} Uložit změny (platí pro všechny)</button>`:''}
+      <button class="btn gold" id="settingsSaveBtn">${I.save} Uložit změny (platí pro všechny)</button>
       <button class="btn" id="bulkBtn">${I.bolt} Hromadná úprava cen</button>
       <button class="btn" id="csvExpBtn">${I.xls} Export CSV (ceník)</button>
       <button class="btn" id="csvImpBtn">${I.up||I.save} Import CSV (ceník)</button>
       <span style="flex:1"></span>
-      <span id="settingsSavedNote" style="font-size:11.5px;color:var(--muted);align-self:center">${(Auth.user()&&Auth.user().admin)?'Změny uložíte tlačítkem vlevo — načtou se všem.':'Změny platí jen dočasně; uložit napořád může správce.'}</span>
+      <span id="settingsSavedNote" style="font-size:11.5px;color:var(--muted);align-self:center">Uloží parametry a ceník na server — načtou se všem uživatelům.</span>
     </div>
 
     <div class="sec-title">Globální parametry</div>
