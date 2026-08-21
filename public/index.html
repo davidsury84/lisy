@@ -3210,7 +3210,7 @@ function renderParams(){
 
   el.querySelectorAll('[data-gp]').forEach(inp=>inp.onchange=()=>{
     const k=inp.dataset.gp; let v=parseFloat(inp.value)||0;
-    if(['najemProc','najemProcLT','marze','inflace','slevaMin','slevaMax','dph','rvPct','poji','diskont'].includes(k)) v=v/100;
+    if(['najemProc','najemProcLT','marze','marzeBramidan','marzeZentex','inflace','slevaMin','slevaMax','dph','rvPct','poji','diskont'].includes(k)) v=v/100;
     GP[k]=v; recalcParamsTable(); refreshHeroDynamic();
   });
   el.querySelectorAll('[data-pk]').forEach(inp=>inp.onchange=()=>{
@@ -7694,6 +7694,8 @@ async function loadSettings(){
     const r=await fetch('/api/settings'); const d=await r.json();
     if(d && typeof d==='object'){
       if(d.gp) Object.keys(d.gp).forEach(k=>{ if(k!=='kurz' && typeof d.gp[k]==='number') GP[k]=d.gp[k]; });
+      // oprava dřívějšího bugu: marže uložená jako celé % (např. 20) místo zlomku (0,20)
+      ['marze','marzeBramidan','marzeZentex'].forEach(k=>{ if(GP[k]>3) GP[k]=GP[k]/100; });
       if(d.prices){
         [...PRESSES, ...COMPACTORS].forEach(p=>{
           const o=d.prices[p.id]; if(!o) return;
