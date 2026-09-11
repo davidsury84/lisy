@@ -3024,7 +3024,7 @@ function pressCard(p,c,best){
       <div class="pprice">${priceBlock}</div>
       ${tipBlock}
       <div class="plinks">${links}</div>
-      ${zx?`<button class="ts-btn" onclick="openTechSheet('${(p.id||'').replace(/'/g,"\\'")}')">📄 Technický list (foto, nákres, rozměry)</button>`:''}
+      <button class="ts-btn" onclick="openTechSheet('${(p.id||'').replace(/'/g,"\\'")}')">📄 Technický list (foto, nákres, rozměry)</button>
       <div class="add-offer">
         <button data-add="${p.id}" class="${inOffer?'added':''}">${inOffer?I.check+' V nabídce':I.plus+' Přidat do nabídky'}</button>
       </div>
@@ -5100,7 +5100,60 @@ function printOfferPDF(){
 }
 
 /* ===== TECHNICKÝ LIST (vlastní, zkrácený) — foto + kótovaný nákres + parametry z datasheetů ===== */
-function buildTechSheetHTML(p){
+/* Technický list — rozcestník dle řady (Zentex / Bramidan). */
+function buildTechSheetHTML(p){ return prodIsZentex(p) ? buildTechSheetZentex(p) : buildTechSheetBramidan(p); }
+
+/* Bramidan — vertikální lisy. Podklady: technické listy výrobce + rozměrové výkresy (čelní pohled + půdorys). */
+function buildTechSheetBramidan(p){
+  const key=bramidanPhoto(p);
+  const row=(k,v)=> (v!=null && v!=='' && v!=='—') ? '<tr><td class="k">'+k+'</td><td class="v">'+v+'</td></tr>' : '';
+  const imgFb = "this.onerror=null;this.closest('figure').style.display='none';";
+  const media='<div class="ts-media">'
+    + '<figure><img src="/img/bramidan/'+key+'.webp" alt="" onerror="'+imgFb+'"><figcaption>Produktové foto</figcaption></figure>'
+    + '<figure><img src="/img/bramidan/dim/'+key+'-front.svg" alt="" onerror="'+imgFb+'"><figcaption>Čelní pohled (kóty v mm)</figcaption></figure>'
+    + '<figure><img src="/img/bramidan/dim/'+key+'-top.svg" alt="" onerror="'+imgFb+'"><figcaption>Půdorys — potřebný prostor s otevřenými dveřmi</figcaption></figure>'
+    + '</div>';
+  const rozmery='<table class="ts-table">'
+    + row('Rozměry stroje Š × H × V', p.dims?p.dims+' mm':'')
+    + row('Hmotnost', p.weight?num(p.weight)+' kg':'')
+    + row('Velikost balíku Š × H × V', p.bale?p.bale+' mm':'')
+    + row('Plnicí otvor Š × V', p.feed?p.feed+' mm':'')
+    + row('Zdvih lisovací desky', p.stroke?p.stroke+' mm':'')
+    + row('Vázání balíku', (p.ties?p.ties+'× ':'')+(p.tyingType||''))
+    + row('Provedení dveří', p.door)
+    + '</table>';
+  const pohon='<table class="ts-table">'
+    + row('Lisovací síla', p.force?p.force+' t':'')
+    + row('Motor', p.kw?String(p.kw).replace('.',',')+' kW':'')
+    + row('El. přípojka', p.power)
+    + row('Čas cyklu (průměr)', p.cycle?p.cycle+' s':'')
+    + row('Hlučnost', p.noise?p.noise+' dB':'')
+    + row('Hydraulický olej', p.oil?p.oil+' L':'')
+    + row('Indikace plného balíku', p.fullBaleLight)
+    + row('Vyhazování balíku', p.baleEject)
+    + '</table>';
+  const balik='<table class="ts-table">'
+    + row('Balík — lepenka / karton', p.card?p.card+' kg':'')
+    + row('Balík — fólie / měkký plast', p.plast?p.plast+' kg':'')
+    + '</table>';
+  const wasteTags = p.waste ? String(p.waste).split(/[,;]/).map(w=>w.trim()).filter(Boolean) : [];
+  const waste = wasteTags.length ? '<div class="ts-sec-title">Vhodné druhy odpadu</div><div class="ts-tags">'
+    + wasteTags.map(w=>'<span>'+w+'</span>').join('')+'</div>' : '';
+  return '<div class="ts-page">'
+    + '<div class="ts-head"><div><div class="ts-brand">ELKOPLAST CZ · Technický list</div>'
+    +   '<h2>'+p.id+'</h2><div class="ts-sub">Vertikální lis'+(p.serie?' · '+p.serie+'-série':'')+(p.door?' · '+p.door+' dveře':'')+'</div></div>'
+    +   '<div class="ts-badge">'+p.force+' t</div></div>'
+    + media
+    + '<div class="ts-sec-title">Rozměry a balík</div>'+rozmery
+    + '<div class="ts-sec-title">Pohon a výkon</div>'+pohon
+    + ((p.card||p.plast)?'<div class="ts-sec-title">Hmotnost balíku (orientačně)</div>'+balik:'')
+    + waste
+    + '<div class="ts-foot"><span>ELKOPLAST CZ, s.r.o. · Štefánikova 2664, 760 01 Zlín · www.elkoplast.cz</span>'
+    +   '<span>Výrobce: Bramidan A/S (DK). Údaje z technických listů výrobce, změna vyhrazena.</span></div>'
+    + '</div>';
+}
+
+function buildTechSheetZentex(p){
   const zs=zentexSpecs(p), zd=zentexDims(p), zt=zentexTypeInfo(p), zw=zentexWaste(p), zo=zentexOptions(p);
   const photo='/img/zentex/'+zentexPhoto(p)+'.jpg';
   const hasDraw=zentexHasDrawing(p);
@@ -5456,7 +5509,7 @@ function offerDocHTML(sel){
       <div style="text-align:right">${prof?`<b style="color:#1a1c1e;font-size:12.5px">${esc(prof.name)}</b><br>${prof.email?esc(prof.email):''}${prof.email&&prof.phone?' · ':''}${prof.phone?esc(prof.phone):''}`:'Vypracoval/a: obchodní oddělení'}</div>
     </div>
     ${(function(){
-      var zs = sel.filter(function(p){return prodIsZentex(p);});
+      var zs = sel.slice();   // technické listy má nově i Bramidan (foto + čelní pohled + půdorys)
       if(!zs.length) return '';
       return '<div class="offer-tech">'
         + '<div style="font-family:Sora,sans-serif;font-size:17px;font-weight:800;color:#1a1c1e;margin:22px 0 16px;padding-bottom:8px;border-bottom:2px solid #ffce1f;page-break-after:avoid;break-after:avoid">Technické listy nabízených strojů</div>'
