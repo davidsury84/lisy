@@ -915,60 +915,64 @@ let ONE_TIME = [
 /* ---------- DATA LISŮ (z modelu ELKOPLAST + bramidan.com) ---------- */
 const PRESSES = [
  {id:"B3",serie:"B",url:"https://www.bramidan.com/vertical-balers/b3/",doc:"https://connect.skypim.com/show?objectid=326448283&template=ORG",
-  force:3,power:"1×230V 10A",noise:"65–68",cycle:"24",dims:"940×715×1985",weight:290,feed:"770×460",bale:"770×500×600",card:"30–50",plast:"40–60",nakup:75500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:0,maxT:1, kw:1.5, oil:15,
-   stroke:600, ties:2, tyingType:"ruční (vazací drát)", fullBaleLight:true, baleEject:false,
+  force:3,power:"1×230V 10A",noise:"60–65",cycle:"24",dims:"940×715×1985",weight:290,feed:"770×460",bale:"770×500×600",card:"30–50",plast:"40–60",nakup:75500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:0,maxT:1, kw:1.1, oil:15,
+   stroke:550, ties:2, tyingType:"motouz", fullBaleLight:true, baleEject:false,
   waste:["Lepenka","Papír","Měkký plast"],desc:"Nejmenší vertikální lis síly 3 t pro malé provozy. Vhodné pro: prodejny, restaurace, kanceláře, malé sklady, e-shopy s nízkou produkcí lepenky (do 1 t/měs). Připojení do běžné zásuvky 1×230 V — bez 3fázového rozvodu. Balík 25–30 kg lze odvézt bez vysokozdvižného vozíku."},
  {id:"B4",serie:"B",url:"https://www.bramidan.com/vertical-balers/b4/",doc:"https://connect.skypim.com/show?objectid=326448283&template=ORG",
-  force:4,power:"1×230V 10A",noise:"57–60",cycle:"28",dims:"940×715×1985",weight:300,feed:"770×460",bale:"770×500×600",card:"40–60",plast:"50–70",nakup:83000,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:0,maxT:1, kw:1.5, oil:15,
-   stroke:600, ties:2, tyingType:"ruční (vazací drát)", fullBaleLight:true, baleEject:true,
+  force:4,power:"1×230V 10A",noise:"60–65",cycle:"28",dims:"940×715×1985",weight:300,feed:"770×460",bale:"770×500×600",card:"40–60",plast:"50–70",nakup:83000,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:0,maxT:1, kw:1.5, oil:15,
+   stroke:650, ties:2, tyingType:"motouz", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Papír","Měkký plast"],desc:"Kompaktní lis 4 t s automatickým vyhozem balíku. Vhodné pro: prodejny a restaurace s mírně vyšší produkcí než B3 (do 1 t/měs lepenky či měkkého plastu). Tichý chod 57–60 dB ideální pro provozy s návštěvníky. Připojení 1×230 V."},
  {id:"B5 wide",serie:"B",url:"https://www.bramidan.com/vertical-balers/b5-wide/",doc:"https://www.bramidan.com/vertical-balers/b5-wide/",
-  force:5,power:"1×230V 10A",noise:"65–68",cycle:"33",dims:"1360×895×2370",weight:600,feed:"1000×500",bale:"1000×700×800",card:"80–110",plast:"90–130",nakup:130500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:0,maxT:2, kw:2.2, oil:20,
-   stroke:800, ties:3, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:5,power:"1×230V 10A",noise:"65–68",cycle:"33",dims:"1360×895×2370",weight:600,feed:"1000×500",bale:"1000×700×800",card:"80–110",plast:"90–130",nakup:130500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:0,maxT:2, kw:1.1, oil:20,
+   stroke:750, ties:3, tyingType:"motouz", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Objemné kartony"],desc:"Lis 5 t se širokým plnicím otvorem 1 m. Vhodné pro: malé sklady s velkými kartony (např. z bílé techniky, nábytek, elektroprodejci), výrobní podniky bez vysokozdvihu. Široký otvor eliminuje skládání kartonů před lisováním. Připojení 1×230 V."},
- {id:"X10",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x10/",doc:"https://www.bramidan.com/vertical-balers/baler-x10/",
-  force:10,power:"1×230V 10A",noise:"59–60",cycle:"38",dims:"1315×1040×1905",weight:665,feed:"800×610",bale:"800×600×600",card:"70–90",plast:"80–110",nakup:160500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:1,maxT:3, kw:2.2, oil:20,
-   stroke:700, ties:2, tyingType:"ruční (vazací drát)", fullBaleLight:true, baleEject:true,
-  waste:["Lepenka","Papír","Plast"],desc:"Kompaktní lis 10 t s mimořádnou silou na velikost. Vhodné pro: středně velké prodejny, supermarkety, malé výrobní provozy, e-shopy se skladem (1–3 t/měs). Nízká výška a malý půdorys — vejde se do těsných míst. Lisuje i tvrdší materiály jako PET nebo lepenku z výkupu."},
+ {id:"X10 230V",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x10/",doc:"https://www.bramidan.com/vertical-balers/baler-x10/",
+  force:10,power:"1×230V 10A",noise:"59–60",cycle:"38",dims:"1315×1040×1905",weight:665,feed:"800×610",bale:"800×600×600",card:"70–90",plast:"80–110",nakup:160500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:1,maxT:3, kw:1.5, oil:20,
+   stroke:845, ties:3, tyingType:"motouz", fullBaleLight:true, baleEject:true,
+  waste:["Lepenka","Papír","Plast"],desc:"Varianta 230 V (jednofázová, 1,5 kW) — stačí běžná zásuvka. Kompaktní lis 10 t s mimořádnou silou na velikost. Vhodné pro: středně velké prodejny, supermarkety, malé výrobní provozy, e-shopy se skladem (1–3 t/měs). Nízká výška a malý půdorys — vejde se do těsných míst. Lisuje i tvrdší materiály jako PET nebo lepenku z výkupu."},
+  {id:"X10 400V",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x10/",doc:"https://www.bramidan.com/vertical-balers/baler-x10/",
+  force:10,power:"3×400V 16A",noise:"59–60",cycle:"18",dims:"1315×1040×1905",weight:665,feed:"800×610",bale:"800×600×600",card:"70–90",plast:"80–110",nakup:160500,doprava:10000,sEl:3545,sBz:5900,sKo:9900,minT:1,maxT:3, kw:4.0, oil:20,
+   stroke:845, ties:3, tyingType:"motouz", fullBaleLight:true, baleEject:true,
+  waste:["Lepenka","Papír","Plast"],desc:"Varianta 400 V (třífázová, 4,0 kW) — 2× rychlejší cyklus (18 s vs 38 s). Kompaktní lis 10 t s mimořádnou silou na velikost. Vhodné pro: středně velké prodejny, supermarkety, malé výrobní provozy, e-shopy se skladem (1–3 t/měs). Nízká výška a malý půdorys — vejde se do těsných míst. Lisuje i tvrdší materiály jako PET nebo lepenku z výkupu."},
  {id:"B20",serie:"B",url:"https://www.bramidan.com/vertical-balers/b20/",doc:"https://www.bramidan.com/vertical-balers/b20/",
-  force:20,power:"3×400V 16A",noise:"62–64",cycle:"36 / 21",dims:"1775×1030×2790",weight:1240,feed:"1200×480",bale:"1200×800×800",card:"200–250",plast:"250–300",nakup:197500,doprava:10000,sEl:3545,sBz:8600,sKo:11600,minT:2,maxT:5, kw:3.0, oil:25,
-   stroke:900, ties:3, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:20,power:"3×400V 16A",noise:"62–64",cycle:"36/21",dims:"1775×1030×2790",weight:1250,feed:"1200×480",bale:"1200×800×800",card:"200–250",plast:"250–300",nakup:197500,doprava:10000,sEl:3545,sBz:8600,sKo:11600,minT:2,maxT:5, kw:4.0, oil:25,
+   stroke:750, ties:4, tyingType:"motouz", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Papír","Měkký plast"],desc:"Flexibilní lis 20 t se širokým otvorem a zádržkami proti expanzi. Vhodné pro: velkoobchody, distribuční centra, výrobní podniky s běžným odpadovým hospodářstvím (2–5 t/měs). Univerzální stroj zvládne lepenku, papír, fólie i smíšený obalový materiál."},
  {id:"X25",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x25/",doc:"https://www.bramidan.com/vertical-balers/baler-x25/",
-  force:25,power:"3×400V 16A",noise:"59–60",cycle:"23",dims:"1755×1255×1995",weight:1410,feed:"1090×530",bale:"1200×800×800",card:"200–300",plast:"250–350",nakup:245000,doprava:10000,sEl:3545,sBz:8600,sKo:11600,minT:3,maxT:5, kw:3.0, oil:25,
-   stroke:1000, ties:3, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:25,power:"3×400V 16A",noise:"59–60",cycle:"23",dims:"1755×1255×1995",weight:1410,feed:"1090×530",bale:"1200×800×800",card:"200–300",plast:"250–350",nakup:245000,doprava:10000,sEl:3545,sBz:8600,sKo:11600,minT:3,maxT:5, kw:4.0, oil:25,
+   stroke:950, ties:4, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Plast","PET","Plechovky"],desc:"Lis 25 t s křížovými válci a dlouhým zdvihem. Vhodné pro: provozy s vyšší produkcí PET, plechovek nebo big bagů (3–5 t/měs). Křížové válce zaručují stabilní kompresi i u expandujících materiálů. Vyšší hmotnost balíku snižuje četnost svozů."},
  {id:"X30 LP",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x30-lp/",doc:"https://www.bramidan.com/vertical-balers/baler-x30-lp/",
   force:30,power:"3×400V 16A",noise:"59–60",cycle:"25",dims:"1760×1255×1995",weight:1450,feed:"1090×530",bale:"1200×800×800",card:"225–325",plast:"275–375",nakup:252500,doprava:10000,sEl:3545,sBz:8600,sKo:11600,minT:3,maxT:8, kw:4.0, oil:30,
-   stroke:900, ties:3, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+   stroke:950, ties:4, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Plast","PET"],desc:"Lis 30 t v provedení Low Profile (nízký profil). Vhodné pro: provozy s nízkým stropem — sklepy, podzemní garáže, výrobní haly s instalacemi pod 2,4 m. Stejná lisovací síla jako standardní X30, ale vejde se pod 2,4 m strop. Pro lepenku, plast i PET."},
  {id:"B30",serie:"B",url:"https://www.bramidan.com/vertical-balers/baler-b30/",doc:"https://www.bramidan.com/vertical-balers/baler-b30/",
-  force:30,power:"3×400V 16A",noise:"62–64",cycle:"34 / 51",dims:"1775×1025×2940",weight:1560,feed:"1200×560",bale:"1200×800×950",card:"280–350",plast:"350–450",nakup:242500,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:3,maxT:8, kw:4.0, oil:30,
-   stroke:1000, ties:3, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:30,power:"3×400V 16A",noise:"62–64",cycle:"34/51",dims:"1775×1025×2940",weight:1560,feed:"1200×560",bale:"1200×800×950",card:"280–350",plast:"350–450",nakup:242500,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:3,maxT:8, kw:4.0, oil:30,
+   stroke:750, ties:4, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Objemný materiál"],desc:"Lis 30 t s velkou komorou a širokým plnicím otvorem. Vhodné pro: logistická centra, větší výrobní provozy, recyklační dvory (3–8 t/měs). Snadná manipulace s objemným materiálem — kartony, fólie, big bagy. Balíky 250–350 kg snižují četnost svozů."},
  {id:"X30",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x30/",doc:"https://www.bramidan.com/vertical-balers/baler-x30/",
   force:30,power:"3×400V 16A",noise:"59–60",cycle:"25",dims:"1760×1255×2295",weight:1710,feed:"1090×655",bale:"1200×800×1000",card:"275–350",plast:"325–425",nakup:279500,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:3,maxT:8, kw:4.0, oil:30,
-   stroke:1100, ties:3, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+   stroke:940, ties:4, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Plast","PET","Big bags"],desc:"Univerzální lis 30 t s křížovými válci. Vhodné pro: provozy s různorodým odpadovým mixem (3–8 t/měs) — lepenka, expandující plast, PET, big bagy. Křížové válce zvládnou i materiály s vysokou pružností. Optimální poměr cena/výkon ve své třídě."},
  {id:"B30 wide",serie:"B",url:"https://www.bramidan.com/vertical-balers/b30-wide/",doc:"https://www.bramidan.com/vertical-balers/b30-wide/",
-  force:30,power:"3×400V 16A",noise:"62–64",cycle:"43",dims:"2110×1270×3350",weight:1800,feed:"1525×560",bale:"1550×800×1100",card:"400–500",plast:"400–600",nakup:292000,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:5,maxT:10, kw:4.0, oil:35,
-   stroke:1100, ties:4, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:30,power:"3×400V 16A",noise:"62–64",cycle:"43",dims:"2080×1270×3350",weight:1800,feed:"1525×560",bale:"1550×800×1100",card:"400–500",plast:"400–600",nakup:292000,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:5,maxT:10, kw:4.0, oil:35,
+   stroke:1000, ties:6, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Velké kartony","Lepenka"],desc:"Lis 30 t s extra širokým plnicím otvorem (1525 mm). Vhodné pro: elektroprodejce a internetové obchody s velkými kartony (TV 65 palců, lednice, nábytek) — bez nutnosti skládání. Snadné nakládání i pro objemné výrobky bez rozebírání."},
  {id:"X40 wide",serie:"X",url:"https://www.bramidan.com/vertical-balers/x40-wide/",doc:"https://connect.skypim.com/show?objectid=326448283&template=ORG",
-  force:40,power:"3×400V 16A",noise:"59–60",cycle:"40",dims:"2080×1255×2355",weight:2200,feed:"1415×520",bale:"1550×800×1100",card:"375–550",plast:"400–600",nakup:336000,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:8,maxT:12, kw:5.5, oil:40,
-   stroke:1100, ties:4, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:40,power:"3×400V 16A",noise:"59–60",cycle:"40",dims:"2080×1255×2340",weight:2200,feed:"1415×520",bale:"1550×800×1100",card:"375–550",plast:"400–600",nakup:336000,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:8,maxT:12, kw:4.0, oil:40,
+   stroke:1090, ties:6, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Stretch fólie","PET","Alu plechovky"],desc:"Nízkoprofilový těžkotonážní lis 40 t s křížovými válci. Vhodné pro: velká distribuční centra, výrobci s vysokou produkcí obalů, recyklační stanice (8–12 t/měs). Plný balík 375 kg pod stropem 2,4 m — kombinace vysoké síly a nízkého profilu. Křížové válce pro stretch fólie, PET, plechovky."},
  {id:"B50",serie:"B",url:"https://www.bramidan.com/vertical-balers/b50/",doc:"https://connect.skypim.com/show?objectid=328498950&template=ORG",
-  force:50,power:"3×400V 16A",noise:"62–64",cycle:"55 / 26",dims:"1820×1320×3110",weight:1800,feed:"1200×565",bale:"1200×800×1100",card:"400–500",plast:"450–550",nakup:306500,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:8,maxT:12, kw:5.5, oil:45,
-   stroke:1100, ties:4, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+  force:50,power:"3×400V 16A",noise:"62–64",cycle:"55/26",dims:"1820×1320×3110",weight:1755,feed:"1200×565",bale:"1200×800×1100",card:"400–500",plast:"450–550",nakup:306500,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:8,maxT:12, kw:4.0, oil:45,
+   stroke:900, ties:4, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Suchý měkký plast"],desc:"Výkonný lis 50 t pro průmysl. Vhodné pro: průmyslové podniky, velké recyklační provozy, papírny, sběrné dvory (8–12 t/měs lepenky či suchého měkkého plastu). Balík na euro paletu (1200×800) — optimální pro skládání a transport. Rychlý cyklus pro vysokou kapacitní propustnost."},
  {id:"X50",serie:"X",url:"https://www.bramidan.com/vertical-balers/baler-x50/",doc:"https://www.bramidan.com/vertical-balers/baler-x50/",
   force:50,power:"3×400V 16A",noise:"62–64",cycle:"22",dims:"1965×1365×2540",weight:2435,feed:"1090×610",bale:"1200×800×1100",card:"350–450",plast:"400–500",nakup:437500,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:8,maxT:12, kw:5.5, oil:45,
-   stroke:1100, ties:4, tyingType:"ruční (vazací drát nebo PP páska)", fullBaleLight:true, baleEject:true,
+   stroke:1210, ties:4, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Plast","PET","Plechovky"],desc:"Špičkový heavy-duty lis 50 t. Vhodné pro: náročné průmyslové provozy, papírny, recyklační stanice s vysokým výkonem (10+ t/měs). Křížové válce pro mix materiálů — lepenka, plast, PET, plechovky. Nejrychlejší cyklus v třídě 50 t, důraz na provozní spolehlivost a bezpečnost obsluhy."},
  {id:"B50 XL SD",serie:"B",door:"SD",url:"https://www.bramidan.com/vertical-balers/b50-xl-sd/",doc:"https://www.bramidan.com/vertical-balers/b50-xl-sd/",
-  force:50,power:"3×400V 16A",noise:"62–64",cycle:"26",dims:"2495×1660×3590",weight:3750,feed:"1825×670",bale:"1850×1100×1200–1300",card:"650–800",plast:"650–800",nakup:588000,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:10,maxT:999, kw:7.5, oil:50,
-   stroke:1300, ties:4, tyingType:"poloautomatické (PP páska, SD dveře)", fullBaleLight:true, baleEject:true,
+  force:50,power:"3×400V 16A",noise:"62–64",cycle:"26",dims:"2495×1660×3590",weight:3250,feed:"1825×670",bale:"1850×1100×1200–1300",card:"650–800",plast:"650–800",nakup:588000,doprava:10000,sEl:3545,sBz:12500,sKo:15000,minT:10,maxT:999, kw:5.5, oil:50,
+   stroke:1100, ties:8, tyingType:"motouz / ocelový drát", fullBaleLight:true, baleEject:true,
   waste:["Lepenka","Měkký plast","Velkoobjem"],desc:"Extra velký lis 50 t s poloautomatickými posuvnými dveřmi (SD). Vhodné pro: velké recyklační podniky, papírny, distribuční huby s nejvyšší produkcí (12+ t/měs). Balík až 800 kg lze stohovat 2+2 pro optimální naložení kamionu. Posuvné dveře pro bezpečnou a komfortní obsluhu velkých balíků."}
 ];
 
@@ -1419,7 +1423,7 @@ const ZENTEX_PHOTO = {
 };
 function zentexPhoto(p){ return ZENTEX_PHOTO[zentexTypeKey(p)] || 'lsha'; }
 /* Reálná produktová fotka Bramidan modelu (self-hosted z /img/bramidan, zdroj bramidan.com) */
-function bramidanPhoto(p){ return (p.id||'').toLowerCase().replace(/\s+/g,''); }
+function bramidanPhoto(p){ return (p.id||'').toLowerCase().replace(/\s*\d+v$/,'').replace(/\s+/g,''); }
 
 /* ---------- POMOCNÉ ---------- */
 const czk = n => Math.round(n).toLocaleString('cs-CZ')+" Kč";
@@ -5129,8 +5133,8 @@ function buildTechSheetBramidan(p){
     + row('Čas cyklu (průměr)', p.cycle?p.cycle+' s':'')
     + row('Hlučnost', p.noise?p.noise+' dB':'')
     + row('Hydraulický olej', p.oil?p.oil+' L':'')
-    + row('Indikace plného balíku', p.fullBaleLight)
-    + row('Vyhazování balíku', p.baleEject)
+    + row('Indikace plného balíku', p.fullBaleLight===true?'ano':(p.fullBaleLight===false?'ne':''))
+    + row('Vyhazování balíku', p.baleEject===true?'automatické':(p.baleEject===false?'ruční':''))
     + '</table>';
   const balik='<table class="ts-table">'
     + row('Balík — lepenka / karton', p.card?p.card+' kg':'')
